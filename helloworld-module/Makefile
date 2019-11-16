@@ -1,15 +1,15 @@
-obj-m += my_module.o
+obj-m += solution.o
 
-all:
+all: checker.h
 	sudo make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) modules
 
 clean:
 	sudo make -C /lib/modules/$(shell uname -r)/build  M=$(shell pwd) clean
 
 load:
-	sudo insmod my_module.ko
+	sudo insmod solution.ko
 	sudo dmesg -c
 
 unload:
-	sudo rmmod my_module.ko
+	sudo rmmod solution.ko
 	sudo dmesg -c
