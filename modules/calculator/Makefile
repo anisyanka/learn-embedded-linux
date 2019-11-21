@@ -1,4 +1,4 @@
-MODULE_FILENAME=mycalc
+MODULE_FILENAME=calc
 
 # kernel object
 KO_FILE=$(MODULE_FILENAME).ko
