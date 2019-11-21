@@ -1,5 +1,8 @@
 MODULE_FILENAME=calc
 
+X=0
+Y=0
+
 # kernel object
 KO_FILE=$(MODULE_FILENAME).ko
 
@@ -21,7 +24,7 @@ clean:
 # `sudo dmesg -c` clears buffer
 insert:
 	sudo dmesg -c
-	sudo insmod $(KO_FILE)
+	sudo insmod $(KO_FILE) x=$(X) y=$(Y)
 	dmesg
 
 remove:
