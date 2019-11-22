@@ -1,13 +1,10 @@
 MODULE_FILENAME=calc
 
-X=0
-Y=0
-
 # kernel object
 KO_FILE=$(MODULE_FILENAME).ko
 
 # environmental for build modules
-export KROOT=/lib/modules/$(shell uname -r)/build
+KROOT=/lib/modules/$(shell uname -r)/build
 
 # common object file after compilation
 obj-m += calc.o
@@ -24,7 +21,7 @@ clean:
 # `sudo dmesg -c` clears buffer
 insert:
 	sudo dmesg -c
-	sudo insmod $(KO_FILE) x=$(X) y=$(Y)
+	sudo insmod $(KO_FILE)
 	dmesg
 
 remove:
