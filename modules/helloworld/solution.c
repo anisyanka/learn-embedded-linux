@@ -7,32 +7,18 @@
 #include <linux/device.h> 
 #include <linux/init.h>
 
-/* external module file */
-#include <checker.h>
-
-static void *p1 = NULL;
-static int *p2 = NULL;
-static struct device *p3 = NULL;
+extern int GLOBAL_VARIABLE;
+extern void calculator(int x, int y);
 
 /*
  * This is the starting point of the kernel module's code execution.
  * There you can allocate some memory, init global variables and so on.
  */
-static int solution_init(void)
+static int __init solution_init(void)
 {
-    /* allocate any pointer type */
-    p1 = kmalloc((size_t)get_void_size(), GFP_KERNEL);
-    submit_void_ptr(p1);
+	calculator(12, 543);
 
-    /* allocate array of ints */
-    p2 = (int *)kmalloc(get_int_array_size(), GFP_KERNEL);
-    submit_int_array_ptr(p2);
-
-    /* go mem for some device */
-    p3 = (struct device *)kmalloc(sizeof(struct device), GFP_KERNEL);
-    submit_struct_ptr(p3);
-
-    return 0;
+	return 0;
 }
  
 /*
@@ -43,16 +29,9 @@ static int solution_init(void)
  * For example you have made a tree where you keep some information - you would 
  * like to place the code for removing the nodes of the tree here.
  */
-static void solution_exit(void)
+static void __exit solution_exit(void)
 {
-    if (p1)
-        checker_kfree(p1);
-
-    if (p2)
-        checker_kfree(p2);
-
-    if (p3)
-        checker_kfree(p3);
+	printk(KERN_INFO "GLOBAL_VARIABLE = %d", GLOBAL_VARIABLE);
 }
 
 module_init(solution_init);
