@@ -12,3 +12,15 @@ install:
 
 clean:
 	@$(MAKE) -C $(KROOT) M=$(shell pwd) clean
+
+insert:
+	sudo dmesg -c
+	sudo insmod strmodule.ko
+	sudo insmod strtest.ko
+	dmesg
+
+remove:
+	sudo dmesg -c
+	sudo rmmod strtest.ko
+	sudo rmmod strmodule.ko
+	dmesg
