@@ -13,7 +13,7 @@
 #define MODULE_INIT_ERROR -1
 #define MODULE_INIT_SUCCESS 0
 
-#define DEV_NAME "ds3231-rtc"
+#define DEV_NAME "ds3231_rtc"
 #define KBUF_SIZE (size_t)((10) * PAGE_SIZE)
 
 #define RTC_CHR_MAJOR 500
@@ -47,13 +47,14 @@ int rtc_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-ssize_t rtc_read(struct file *file, char __user *buf, size_t lbuf, loff_t *ppos)
+ssize_t rtc_read(struct file *file, char __user *user_buffer,
+			size_t luser_buffer, loff_t *ppos)
 {
 	return 0;
 }
 
-ssize_t rtc_write(struct file *file, const char __user *buf,
-			size_t lbuf, loff_t *ppos)
+ssize_t rtc_write(struct file *file, const char __user *user_buffer,
+			size_t luser_buffer, loff_t *ppos)
 {
 	return 0;
 }
