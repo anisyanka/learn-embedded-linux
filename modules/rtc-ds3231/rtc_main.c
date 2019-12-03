@@ -10,6 +10,8 @@
 #include <linux/uaccess.h> /* data from user-space to kernel */
 #include <linux/cdev.h> /* need for char devices */
 
+#include "rtc_fops.h"
+
 #define MODULE_INIT_ERROR -1
 #define MODULE_INIT_SUCCESS 0
 
@@ -37,45 +39,12 @@ static dev_t rtc_first_dev;
  */
 static struct cdev *rtc_cdevice;
 
-static int rtc_open(struct inode *inode, struct file *file)
-{
-	return 0;
-}
-
-int rtc_release(struct inode *inode, struct file *file)
-{
-	return 0;
-}
-
-ssize_t rtc_read(struct file *file, char __user *user_buffer,
-			size_t luser_buffer, loff_t *ppos)
-{
-	return 0;
-}
-
-ssize_t rtc_write(struct file *file, const char __user *user_buffer,
-			size_t luser_buffer, loff_t *ppos)
-{
-	return 0;
-}
-
-/*
- * This functions will call afted user program will work
- * with RTC device. F. e. `int df = open("/dev/ds3231-rtc");`
- */
-static const struct file_operations rtc_fops = {
-	.owner = THIS_MODULE,
-	.read = rtc_read,
-	.write = rtc_write,
-	.open = rtc_open,
-	.release = rtc_release
-};
 
 static int __init rtc_init(void)
 {
 	int err;
 
-	printk(KERN_INFO "RTC module is being load\n");
+	printk(KERN_INFO "RTC module is being loaded\n");
 
 	rtc_kbuf = kmalloc(KBUF_SIZE, GFP_KERNEL);
 	if (!rtc_kbuf) {
@@ -108,7 +77,7 @@ static int __init rtc_init(void)
 	 * Init and add device to /dev/ file system 
 	 * It need calls device counts times
 	 */
-	cdev_init(rtc_cdevice, &rtc_fops);
+	cdev_init(rtc_cdevice, rtc_get_fops_implementation());
 	cdev_add(rtc_cdevice, rtc_first_dev, RTC_MAX_DEVICE_CNT);
 
 	printk(KERN_INFO "RTC module was loaded\n");
@@ -118,8 +87,6 @@ static int __init rtc_init(void)
 
 static void __exit rtc_exit(void)
 {
-	printk(KERN_INFO "RTC module exit\n");
-
 	if (rtc_kbuf)
 		kfree(rtc_kbuf);
 
@@ -129,6 +96,8 @@ static void __exit rtc_exit(void)
 	 */
 	cdev_del(rtc_cdevice);
 	unregister_chrdev_region(rtc_first_dev, RTC_MAX_DEVICE_CNT);
+
+	printk(KERN_INFO "RTC module exit\n");
 }
 
 module_init(rtc_init);

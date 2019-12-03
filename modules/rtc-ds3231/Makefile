@@ -2,17 +2,21 @@ MODULE_NAME=rtc
 KO=$(MODULE_NAME).ko
 
 SCRIPTS=../../scripts
+KROOT=/lib/modules/$(shell uname -r)/build
 
-obj-m += rtc.o
+OBJ = rtc_main.o rtc_fops.o
+
+obj-m += ds3231_rtc.o
+ds3231_rtc-objs := $(OBJ)
 
 all:
-	sudo make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) modules
+	sudo make -C $(KROOT) M=$(shell pwd) modules
 
 install:
-	sudo make -C /lib/modules/$(shell uname -r)/build M=$(shell pwd) modules_install
+	sudo make -C $(KROOT) M=$(shell pwd) modules_install
 
 clean:
-	sudo make -C /lib/modules/$(shell uname -r)/build  M=$(shell pwd) clean
+	sudo make -C $(KROOT)  M=$(shell pwd) clean
 
 insert: create_node
 	sudo dmesg -c
