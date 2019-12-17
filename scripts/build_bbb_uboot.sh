@@ -18,7 +18,7 @@ make -C $UBOOT_ROOT                  \
 	CROSS_COMPILE=$CROSS_COMPILE \
 	ARCH=$ARCH                   \
 	O=$BUILD_ROOT                \
-	am335x_evm_defconfig
+	am335x_boneblack_vboot_defconfig
 
 make -C $UBOOT_ROOT                  \
 	CROSS_COMPILE=$CROSS_COMPILE \
