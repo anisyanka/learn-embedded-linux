@@ -2,27 +2,27 @@
 
 I have started to learn embedded Linux and driver devepompemt with the [BeagleBone Black board](https://www.elinux.org/Beagleboard:BeagleBoneBlack). There I will write some usefull notes or commands about work with the BBB or about driver development.
 
-## My study plan
+## Study plan
 
-##### 1. Preparation
+**Preparation**
   - Build set of tools for Cortex A8 ARM
   - Build and flash U-Boot in eMMC memory on board
   - Build the Linux Kernel 
   - Build root file system
 
-##### 2. Learning
+**Learning**
   - Learn how to boot the Linux kernel
   - Learn what is device tree table
   - Learn how to write kernel modules
 
-##### 3. Laboratory works from [Bootlin](https://bootlin.com/doc/training/linux-kernel/) about Linux kernel course
+**[Bootlin's](https://bootlin.com/doc/training/linux-kernel/) laboratory works about Linux kernel course**
   - Make "Hello world" kernel module
   - Make I2C-driver for external I2C-device
   - Make driver avaliable in user-space through `/dev/devname`
   - Realize `fops` struct for i2c-device
   - Realize interrupt handler from the device
 
-##### 4. Try to do some drivers for own soldered board
+**Write drivers for homemade soldered board**
   - [SPI OLED](https://components101.com/oled-display-ssd1306) display based on ssd1306 controller
   - [Rotary](https://howtomechatronics.com/tutorials/arduino/rotary-encoder-works-use-arduino/)
   - Temperature and humidity sensor [DHT11](https://www.mouser.com/datasheet/2/758/DHT11-Technical-Data-Sheet-Translated-Version-1143054.pdf)
@@ -58,14 +58,14 @@ I have started to learn embedded Linux and driver devepompemt with the [BeagleBo
 ## Few words about schematic
 I don't know why I have decided to make this ugly board, but I think it doesn't matter for driver development and learning the Linux kernel :)
 
-*in progress*
+---in progress---
 
 ## Toolchain
 Toolchain is a collection of different tools set up to tightly work together.
 First of all, in embedded systems case, toolchain is needed to build a bootloader, a kernel and a root file system.
 After this actions we need to use the toolchain to build kernel modules, system drivers and user-space applications.
 
-Every toolchain contains of:
+**Every toolchain contains of:**
  - Compiler. It is need to translate source code to assemler mnemonics.
  - Binutils. It is need to use `as` and `ld`. Assembler translates the mnemonics to binary codes. Linker makes one executable file.
  - C library and inludes of the Linux kernel(for development).
@@ -74,7 +74,7 @@ We need a cross-toolchain, because we need to compile code for machine different
 Build machine in my case is `x86-64 platform`.
 Target machine (where code will be executed) in my case is `ARM Cortex-A8 32 bit platform`.
 
-Toolchain choice depends on target platform:
+**Toolchain choice depends on target platform:**
  - Processor architecture (ARM / MIPS / x86_64 and so on)
  - Little endian or big endian
  - Is there hard-float arithmetic?
@@ -84,7 +84,7 @@ If a processor has hardware hard-float block, we need to pick toolchain which wi
 It will be more faster, than chip without hf, because without it compiler will use soft-float for double and float operations.
 The Beagle Bone Black has ARMv7 arch and hardware float block.
 
-There are some ways to get needed toolchain:
+**There are some ways to get needed toolchain:**
  - Download already pre-built toolchain, for example, from [Linaro](https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/arm-linux-gnueabihf/).
  - To make the toolchain itself.
 
@@ -99,3 +99,39 @@ wget -c https://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/ar
 tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 *use path to this toolchain during building modules, drivers and user-space*
 ```
+## Bootloader
+The main role of a bootloader is base initialisation of processor peripherals and loading a kernel of operating system to RAM memory.
+
+**OS is loaded with help several stages:**
+```
+Power-reset ---> ROM-code ---> Preloader or Secondary-Program-Loader ---> u-boot/barebox or Third-Program-Loader ---> kernel-start
+```
+
+##### 1. ROM-code
+
+A lot of modern SoCs have on-chip ROM memory. Code into the ROM is flashed on factory and it will executed by the CPU from power-up.
+Immediately аfter power-up CPU has no access to the peripheral devices, such as RAM, storage and so on, because the CPU doesn't know something about its board.
+Only the next stages can know about board's chipset, because we itself have configured, built and flashed right code(uboot/device-tree) to flash/eMMC card.
+That's why the one can use only on-chip RAM memory. It is a SRAM usually.
+
+This bootloader initializes a minimal amount of CPU and board hardware, then accesses the first partition of the SD or MMC card, which must be in FAT format,
+and loads a file called "MLO", and executes it. "MLO" is the second-stage bootloader.
+
+If thare aren't MMC, ROM-code tries to load the preloader into SRAM with help this interfaces:
+ - SPI flash card
+ - Ethernet/USB/UART
+
+In the end of this stage SPL-code is loaded into SRAM and starts to execute.
+If SoC-system has enough RAM memory, ROM code can load and TPL(`uboot.bin`) too.
+
+##### 2. SPL
+
+SPL-code must configure DRAM-chip, using SoC DRAM controller, to load the TPL to it. 
+This bootloader apparently also just reads the first partition of the SD card, and loads a file called "u-boot.bin", and executes it.
+"u-boot.bin" is the third-stage bootloader.
+
+##### 3. TPL: u-boot or barebox
+
+u-boot code loads OS kernel from MMC/SD to DRAM, flattened device tree and ramdisk.
+
+## Building u-boot
