@@ -10,14 +10,14 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
   - [Bootloader](#Bootloader)
     - [Stages of loading OS](#What-are-there-stages-of-loading-OS)
     - [Building uboot](#Building-uboot)
-    - [Installing uboot to BBB](#Installing-uboot-to-BBB)
+  - [Installing all images to the BBB](#Installing-all-images-to-the-BBB)
 
 ## Study plan
 
 **Preparation**
-  - Build set of tools for Cortex A8 ARM
+  - Build set of tools for Cortex-A8 ARM
   - Build and flash U-Boot in eMMC memory on board
-  - Build the Linux Kernel 
+  - Build the Linux Kernel
   - Build root file system
 
 **Learning**
@@ -169,4 +169,18 @@ After building you can find this files into `./out/uboot/` directory:
  - u-boot.map is table of symbols
  - u-boot.bin is itself bootloader with dtb ready for executing in a target
 
-### Installing uboot to BBB
+## Installing all images to the BBB
+The BBB has a JTAG-connector on the board, that's why we can flash the uboot to RAM, run it and, with help uboot command line,
+copy its code to flash card. But I have no JTAG for armv7. I will use a SD-card and my work station to prepare the uboot for the BBB.
+
+The AM335x chip has internal ROM memory, in which ROM-code was saved. This code can access to SD card during boot process.
+We just need to make the first part of a SD card as booting part and format it to FAT.
+Use [this](https://ragnyll.gitlab.io/2018/05/22/format-a-sd-card-to-fat-32linux.html) guide to format SD-card
+
+Then we need to mount the sd-card to work station OS and copy our bootloaders to SD:
+```sh
+cp ./out/uboot/MLO ./out/uboot/u-boot.bin -t /media/[user]/[dir]
+```
+
+After this manipulations we may disable the bbb, insert sd-card, press `uSD button` on the board
+(that will be booting from SD, not MMC) and turn on power.
