@@ -2,6 +2,15 @@
 
 I have started to learn embedded Linux and driver devepompemt with the [BeagleBone Black board](https://www.elinux.org/Beagleboard:BeagleBoneBlack). There I will write some usefull notes or commands about work with the BBB or about driver development.
 
+# Table of contents
+  - [Study plan](#Study-plan)
+  - [Few words about homemade development board](#Few-words-about-homemade-development-board)
+  - [Few words about schematic](#Few-words-about-schematic)
+  - [Toolchain](#Toolchain)
+  - [Bootloader](#Bootloader)
+    - [Stages of loading OS](#What-are-there-stages-of-loading-OS)
+    - [Building uboot](#Building-uboot)
+
 ## Study plan
 
 **Preparation**
@@ -36,20 +45,20 @@ I have started to learn embedded Linux and driver devepompemt with the [BeagleBo
 | ![Front of development board](tools/pictures/front-back.png) |
 |:--:|
 | *My Frankenstein* |
- > 1. Servomotor, that allows for precise control of angular position
- > 2. Mechanical rotary encoder that converts the angular position to digital output signals
- > 3. Ultrasonic ranging module
- > 4. Power LED
- > 5. SPI OLED display
- > 6. User's GPIO LED
- > 7. Temperature and humidity sensor
- > 8. Seven-segment display
- > 9. User's button
- > 10. Interface to BBB
- > 11. CR2032 batary for RTC
- > 12. RTC
- > 13. Ambient light sensor
- > 14. Barometric pressure sensor
+ - 1. Servomotor, that allows for precise control of angular position
+ - 2. Mechanical rotary encoder that converts the angular position to digital output signals
+ - 3. Ultrasonic ranging module
+ - 4. Power LED
+ - 5. SPI OLED display
+ - 6. User's GPIO LED
+ - 7. Temperature and humidity sensor
+ - 8. Seven-segment display
+ - 9. User's button
+ - 10. Interface to BBB
+ - 11. CR2032 batary for RTC
+ - 12. RTC
+ - 13. Ambient light sensor
+ - 14. Barometric pressure sensor
 
 | ![The BBB and UART-USB module](tools/pictures/bbb.png) |
 |:--:|
@@ -102,12 +111,14 @@ tar xf gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf.tar.xz
 ## Bootloader
 The main role of a bootloader is base initialisation of processor peripherals and loading a kernel of operating system to RAM memory.
 
-**OS is loaded with help several stages:**
+### What are there stages of loading OS?
+
+OS is loaded with help several stages
 ```
 Power-reset ---> ROM-code ---> Preloader or Secondary-Program-Loader ---> u-boot/barebox or Third-Program-Loader ---> kernel-start
 ```
 
-##### 1. ROM-code
+**ROM code**
 
 A lot of modern SoCs have on-chip ROM memory. Code into the ROM is flashed on factory and it will executed by the CPU from power-up.
 Immediately аfter power-up CPU has no access to the peripheral devices, such as RAM, storage and so on, because the CPU doesn't know something about its board.
@@ -124,14 +135,14 @@ If thare aren't MMC, ROM-code tries to load the preloader into SRAM with help th
 In the end of this stage SPL-code is loaded into SRAM and starts to execute.
 If SoC-system has enough RAM memory, ROM code can load and TPL(`uboot.bin`) too.
 
-##### 2. SPL
+**SPL**
 
 SPL-code must configure DRAM-chip, using SoC DRAM controller, to load the TPL to it. 
 This bootloader apparently also just reads the first partition of the SD card, and loads a file called "u-boot.bin", and executes it.
 "u-boot.bin" is the third-stage bootloader.
 
-##### 3. TPL: u-boot or barebox
+**TPL: uboot or barebox**
 
 u-boot code loads OS kernel from MMC/SD to DRAM, flattened device tree and ramdisk.
 
-## Building u-boot
+### Building uboot
