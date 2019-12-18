@@ -1,6 +1,6 @@
 # Learn embedded Linux
 
-I have started to learn embedded Linux and driver devepompemt with the [BeagleBone Black board](https://www.elinux.org/Beagleboard:BeagleBoneBlack). There I will write some usefull notes or commands about work with the BBB or about driver development.
+I have started to learn embedded Linux and driver development with the [BeagleBone Black board](https://www.elinux.org/Beagleboard:BeagleBoneBlack). There I will write some usefull notes or commands about work with the BBB or about driver development.
 
 # Table of contents
   - [Study plan](#Study-plan)
@@ -10,6 +10,7 @@ I have started to learn embedded Linux and driver devepompemt with the [BeagleBo
   - [Bootloader](#Bootloader)
     - [Stages of loading OS](#What-are-there-stages-of-loading-OS)
     - [Building uboot](#Building-uboot)
+    - [Installing uboot to BBB](#Installing-uboot-to-BBB)
 
 ## Study plan
 
@@ -45,20 +46,20 @@ I have started to learn embedded Linux and driver devepompemt with the [BeagleBo
 | ![Front of development board](tools/pictures/front-back.png) |
 |:--:|
 | *My Frankenstein* |
- - 1. Servomotor, that allows for precise control of angular position
- - 2. Mechanical rotary encoder that converts the angular position to digital output signals
- - 3. Ultrasonic ranging module
- - 4. Power LED
- - 5. SPI OLED display
- - 6. User's GPIO LED
- - 7. Temperature and humidity sensor
- - 8. Seven-segment display
- - 9. User's button
- - 10. Interface to BBB
- - 11. CR2032 batary for RTC
- - 12. RTC
- - 13. Ambient light sensor
- - 14. Barometric pressure sensor
+1. Servomotor, that allows for precise control of angular position
+2. Mechanical rotary encoder that converts the angular position to digital output signals
+3. Ultrasonic ranging module
+4. Power LED
+5. SPI OLED display
+6. User's GPIO LED
+7. Temperature and humidity sensor
+8. Seven-segment display
+9. User's button
+10. Interface to BBB
+11. CR2032 batary for RTC
+12. RTC
+13. Ambient light sensor
+14. Barometric pressure sensor
 
 | ![The BBB and UART-USB module](tools/pictures/bbb.png) |
 |:--:|
@@ -146,3 +147,26 @@ This bootloader apparently also just reads the first partition of the SD card, a
 u-boot code loads OS kernel from MMC/SD to DRAM, flattened device tree and ramdisk.
 
 ### Building uboot
+```sh
+git clone https://github.com/u-boot/u-boot.git uboot
+cd uboot
+git checkout v2019.10
+```
+
+We need to build the SPL and TPL. Other words we need to get two binary files:
+ - MLO as the SPL
+ - u-boot.bin as the TPL
+
+To compile this code, we should configure the uboot sources with help `make <config-file-for-your-board>`.
+There are a lot of ready config files in the `./uboot/configs/`. We can take ready file for a board or write own file.
+Config file must specify a device tree file for a board and define some constants.
+See `./scripts/build_bbb_uboot.sh` which builds uboot for the BeagleBoneBlack board or you may use Makefile:
+`make bbb_uboot`
+
+After building you can find this files into `./out/uboot/` directory:
+ - MLO is secodary program loader
+ - u-boot is itself bootloader in ELF format for debugging
+ - u-boot.map is table of symbols
+ - u-boot.bin is itself bootloader with dtb ready for executing in a target
+
+### Installing uboot to BBB
