@@ -1,26 +1,20 @@
 #!/bin/bash
 
-ARCH=arm
-UBOOT_ROOT=uboot
-LEARN_LINUX_PROJ_ROOT=`pwd`
-BUILD_ROOT=$LEARN_LINUX_PROJ_ROOT/build/uboot
+source ./scripts/global_vars.sh
 
-CROSS_COMPILE_PATH=$LEARN_LINUX_PROJ_ROOT/tools/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin
-CROSS_COMPILE=$CROSS_COMPILE_PATH/arm-linux-gnueabihf-
-
-make -C $UBOOT_ROOT                  \
-	CROSS_COMPILE=$CROSS_COMPILE \
-	ARCH=$ARCH                   \
-	O=$BUILD_ROOT                \
+make -C $UBOOT_SRC_DIR                      \
+	CROSS_COMPILE=$CROSS_COMPILER_PREFX \
+	ARCH=$ARCH                          \
+	O=$UBOOT_BUILD_DIR                  \
 	distclean
 
-make -C $UBOOT_ROOT                  \
-	CROSS_COMPILE=$CROSS_COMPILE \
-	ARCH=$ARCH                   \
-	O=$BUILD_ROOT                \
+make -C $UBOOT_SRC_DIR                      \
+	CROSS_COMPILE=$CROSS_COMPILER_PREFX \
+	ARCH=$ARCH                          \
+	O=$UBOOT_BUILD_DIR                  \
 	am335x_boneblack_vboot_defconfig
 
-make -C $UBOOT_ROOT                  \
-	CROSS_COMPILE=$CROSS_COMPILE \
-	ARCH=$ARCH                   \
-	O=$BUILD_ROOT
+make -C $UBOOT_SRC_DIR                      \
+	CROSS_COMPILE=$CROSS_COMPILER_PREFX \
+	ARCH=$ARCH                          \
+	O=$UBOOT_BUILD_DIR
