@@ -11,7 +11,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
     - [Stages of loading OS](#What-are-there-stages-of-loading-OS)
     - [Building uboot](#Building-uboot)
   - [The Linux kernel](#The-Linux-kernel)
-    - [Configuration](#Configuration)
+    - [Configuration and buildings](#Configuration-and-buildings)
   - [Installing all images to the BBB](#Installing-all-images-to-the-BBB)
 
 ## Study plan
@@ -162,7 +162,7 @@ We need to build the SPL and TPL. Other words we need to get two binary files:
 To compile this code, we should configure the uboot sources with help `make <config-file-for-your-board>`.
 There are a lot of ready config files in the `./uboot/configs/`. We can take ready file for a board or write own file.
 Config file must specify a device tree file for a board and define some constants.
-See `./scripts/build_bbb_uboot.sh` which builds uboot for the BeagleBoneBlack board or you may use Makefile:
+See `./scripts/build_bbb_uboot.sh` which builds uboot for the BeagleBoneBlack board or you can use Makefile:
 `make bbb_uboot`
 
 After building you can find this files into `./out/uboot/` directory:
@@ -172,12 +172,24 @@ After building you can find this files into `./out/uboot/` directory:
  - u-boot.bin is itself bootloader with dtb ready for executing in a target
 
 ## The Linux kernel
-First of all we need to configure th kernel for our board. There are a lot of already ready config files.
-We may find its into ``arch/$ARCH/configs/`` directory. 
+First of all we need to configure the kernel for our board. There are a lot of already ready config files.
+We can find its into `arch/$ARCH/configs/` directory.
 
-### Configuration
+### Configuration and buildings
 
-The kernel uses ``Kconfig`` system to configure whole system and then ``Kbuild`` system to build the one.
+The kernel uses `Kconfig` system to configure whole system and then `Kbuild` system to build the one.
+You can learn the `Kconfig` system in the `$(KERNEL_SRC_DIR)/Documentation/Kbuild`. Also in the Linux source tree there is utilities which can read `Kconfig` files and show it in graphics menu.
+For example:
+```sh
+make ARCH=arm menuconfig
+```
+The utilities generate `.config` file in root of Linux sources.
+Then we can build kernel for target. Build system will use the `.config` file to build the kernel.
+There are a lot of configuration variables in Kconfig. If we don't want to make own config file, we can use ready defaul config.
+For example for armv7:
+```sh
+make ARCH=arm multi_v7_defconfig
+```
 
 ## Installing all images to the BBB
 The BBB has a JTAG-connector on the board, that's why we can flash the uboot to RAM, run it and, with help uboot command line,
