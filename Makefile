@@ -92,5 +92,8 @@ kernel_config:
 		O=$(KERNEL_BUILD_DIR)                 \
 		menuconfig
 
+	# ToDO: maybe need rebuild
+	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
+
 install_host_deps:
 	@./$(SCRIPTS_DIR)/install_host_deps.sh

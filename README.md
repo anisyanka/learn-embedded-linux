@@ -192,8 +192,8 @@ make ARCH=arm multi_v7_defconfig
 make ARCH=arm CROSS_COMPILE=... all
 ```
 After building into `./out/kernel/` directory this files will appeared:
- - Inage is image of the kernel
- - zInage is image of the kernel in compressed state
+ - Image is image of the kernel
+ - zImage is image of the kernel in compressed state
  - am335x-boneblack.dtb - is Device Tree Blob for the BBB board
  - vmlinux is ELF file for debugger
 
