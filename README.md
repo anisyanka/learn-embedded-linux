@@ -165,7 +165,7 @@ Config file must specify a device tree file for a board and define some constant
 See `./scripts/build_bbb_uboot.sh` which builds uboot for the BeagleBoneBlack board or you can use Makefile:
 `make bbb_uboot`
 
-After building you can find this files into `./out/uboot/` directory:
+After building you can find this files `./out/uboot/ directory:
  - MLO is secodary program loader
  - u-boot is itself bootloader in ELF format for debugging
  - u-boot.map is table of symbols
@@ -185,11 +185,17 @@ make ARCH=arm menuconfig
 ```
 The utilities generate `.config` file in root of Linux sources.
 Then we can build kernel for target. Build system will use the `.config` file to build the kernel.
-There are a lot of configuration variables in Kconfig. If we don't want to make own config file, we can use ready defaul config.
+There are a lot of configuration variables in Kconfig. If we don't want to make own config file from scratch, we can use ready defaul config.
 For example for armv7:
 ```sh
 make ARCH=arm multi_v7_defconfig
+make ARCH=arm CROSS_COMPILE=... all
 ```
+After building into `./out/kernel/` directory this files will appeared:
+ - Inage is image of the kernel
+ - zInage is image of the kernel in compressed state
+ - am335x-boneblack.dtb - is Device Tree Blob for the BBB board
+ - vmlinux is ELF file for debugger
 
 ## Installing all images to the BBB
 The BBB has a JTAG-connector on the board, that's why we can flash the uboot to RAM, run it and, with help uboot command line,

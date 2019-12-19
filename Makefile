@@ -21,6 +21,9 @@ KERNEL_BUILD_DIR=$(BUILD_ROOT_DIR)/kernel
 UBOOT_BINARIES_DIR=$(LEARN_LINUX_PROJ_ROOT)/out/uboot
 KERNEL_BINARIES_DIR=$(LEARN_LINUX_PROJ_ROOT)/out/kernel
 
+# BBB dtb
+DTB=am335x-boneblack.dtb
+
 all: uboot kernel
 
 uboot:
@@ -62,8 +65,25 @@ kernel:
 		ARCH=$(ARCH)                          \
 		O=$(KERNEL_BUILD_DIR)
 
-	cp $(UBOOT_BUILD_DIR)/MLO $(UBOOT_BUILD_DIR)/u-boot* \
-		--target-directory=$(UBOOT_BINARIES_DIR)
+	cp $(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/Image            \
+		$(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/zImage      \
+		$(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/dts/$(DTB)  \
+		$(KERNEL_BUILD_DIR)/vmlinux                       \
+		$(KERNEL_BUILD_DIR)/.config                       \
+		--target-directory=$(KERNEL_BINARIES_DIR)
+
+clean:
+	$(MAKE) -C $(UBOOT_SRC_DIR)                   \
+		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
+		ARCH=$(ARCH)                          \
+		O=$(UBOOT_BUILD_DIR)                  \
+		distclean
+
+	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
+		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
+		ARCH=$(ARCH)                          \
+		O=$(KERNEL_BUILD_DIR)                 \
+		distclean
 
 kernel_config:
 	$(MAKE) -C $(KERNEL_SRC_DIR)             \
