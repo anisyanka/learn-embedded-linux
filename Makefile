@@ -60,7 +60,7 @@ kernel:
 		O=$(KERNEL_BUILD_DIR)                 \
 		multi_v7_defconfig
 
-	$(MAKE) -j 8 -C $(KERNEL_SRC_DIR)             \
+	$(MAKE) -C $(KERNEL_SRC_DIR)             \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
 		O=$(KERNEL_BUILD_DIR)
