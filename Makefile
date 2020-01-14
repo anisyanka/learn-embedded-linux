@@ -5,12 +5,12 @@ SCRIPTS_DIR=scripts
 LEARN_LINUX_PROJ_ROOT=$(shell pwd)
 
 # toolchain
-CROSS_COMPILER_PATH=$(LEARN_LINUX_PROJ_ROOT)/embedded_system_parts/tools/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin
+CROSS_COMPILER_PATH=$(LEARN_LINUX_PROJ_ROOT)/tools/gcc-linaro-7.3.1-2018.05-x86_64_arm-linux-gnueabihf/bin
 CROSS_COMPILER_PREFX=$(CROSS_COMPILER_PATH)/arm-linux-gnueabihf- 
 
 # src dirs
-UBOOT_SRC_DIR=embedded_system_parts/uboot
-KERNEL_SRC_DIR=embedded_system_parts/kernel
+UBOOT_SRC_DIR=uboot
+KERNEL_SRC_DIR=kernel
 
 # build dirs
 BUILD_ROOT_DIR=$(LEARN_LINUX_PROJ_ROOT)/build
