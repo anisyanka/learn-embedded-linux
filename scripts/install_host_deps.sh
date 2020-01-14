@@ -7,7 +7,4 @@ sudo apt-get install    bison            \
                         libncursesw5-dev \
                         autoconf         \
                         u-boot-tools     \
-                        libssl-dev       \
-                        linux-source     \
-                        lzop             \
-                        tftpd
+                        libssl-dev
