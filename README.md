@@ -287,4 +287,39 @@ After this manipulations we need to disable the board, insert SD card, press `uS
 After this we should see uboot booting log in uart console.
 
 ### Setup NFS
---in progress NFS--
+
+The next step is to configure u-boot and workstation to let the board download files,
+such as the kernel image and Device Tree Binary (DTB), using the TFTP protocol through a
+network connection. The BBB and u-boot(see compiling config) support Ethernet over USB.
+
+**Setup TFTP on uboot:**
+```
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+=> setenv ethact usb_ether
+=> setenv usbnet_devaddr f8:dc:7a:00:00:02
+=> setenv usbnet_hostaddr f8:dc:7a:00:00:01
+=> saveenv
+```
+Then reset board(need that uboot read params again) and go to the u-boot again.
+
+**Setup TFTP on workstation:**
+
+We won’t be able to see the network interface corresponding to the Ethernet over
+USB device connection yet, because it’s only active when the board turns it on, from u-boot or
+from Linux. When this happens, the network interface name will be enx<macaddr>. Given the
+value we gave to usbnet_hostaddr, it will therefore be enxf8dc7a000001.
+
+Install TFTP deamon or run `./scripts/install_host_deps.sh`
+```
+sudo apt install tftpd-hpa
+```
+**Set network interface:**
+```
+nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
+```
+After installing we can put any files in the `/var/lib/tftpboot` on workstation and download this file
+from u-boot with help:
+```
+tftp 0x81000000(any raw address) <file-name-in-/var/lib/tftpboot-directory>
+```
