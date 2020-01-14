@@ -8,5 +8,5 @@ sudo apt-get install    bison            \
                         autoconf         \
                         u-boot-tools     \
                         libssl-dev       \
-                        tftp-hpa         \
+                        tftpd-hpa        \
                         tftp
