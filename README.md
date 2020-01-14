@@ -162,17 +162,16 @@ We need to build the SPL and TPL. Other words we need to get two binary files:
 To compile this code, we should configure the uboot sources with help `make <config-file-for-your-board>`.
 There are a lot of ready config files in the `./uboot/configs/`. We can take ready file for a board or write own file.
 Config file must specify a device tree file for a board and define some constants.
-See `./scripts/build_bbb_uboot.sh` which builds uboot for the BeagleBoneBlack board or you can use Makefile:
-`make bbb_uboot`
+See `Makefile` which builds uboot for the BeagleBoneBlack board or type `make uboot` in the root of the repository.
 
-After building you can find this files `./out/uboot/ directory:
+After building you can find this files in the`./out/uboot/` directory:
  - MLO is secodary program loader
  - u-boot is itself bootloader in ELF format for debugging
  - u-boot.map is table of symbols
  - u-boot.bin is itself bootloader with dtb ready for executing in a target
 
 ## The Linux kernel
-First of all we need to configure the kernel for our board. There are a lot of already ready config files.
+First of all we need to configure the kernel for our board. There are a lot of ready config files.
 We can find its into `arch/$ARCH/configs/` directory.
 
 ### Configuration and buildings
@@ -185,7 +184,7 @@ make ARCH=arm menuconfig
 ```
 The utilities generate `.config` file in root of Linux sources.
 Then we can build kernel for target. Build system will use the `.config` file to build the kernel.
-There are a lot of configuration variables in Kconfig. If we don't want to make own config file from scratch, we can use ready defaul config.
+There are a lot of configuration variables in Kconfig. If we don't want to make own config file from scratch, we can use ready default config.
 For example for armv7:
 ```sh
 make ARCH=arm multi_v7_defconfig

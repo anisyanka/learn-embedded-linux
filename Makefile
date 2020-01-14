@@ -54,6 +54,7 @@ kernel:
 		O=$(KERNEL_BUILD_DIR)                 \
 		distclean
 
+	# after this .config file will place in the `KERNEL_BUILD_DIR`
 	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
@@ -92,7 +93,6 @@ kernel_config:
 		O=$(KERNEL_BUILD_DIR)                 \
 		menuconfig
 
-	# ToDO: maybe need rebuild
 	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
 
 install_host_deps:
