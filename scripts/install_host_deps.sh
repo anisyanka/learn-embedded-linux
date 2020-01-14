@@ -7,4 +7,6 @@ sudo apt-get install    bison            \
                         libncursesw5-dev \
                         autoconf         \
                         u-boot-tools     \
-                        libssl-dev
+                        libssl-dev       \
+                        tftp-hpa         \
+                        tftp
