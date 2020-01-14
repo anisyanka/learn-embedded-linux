@@ -1,0 +1,36 @@
+# Common ARM V7 events
+# From ARM ARM
+# See Sections 30.8.* for definitions of terms and events used here.
+#
+event:0x00 counters:1,2,3,4,5,6 um:zero minimum:500 name:SW_INCR : Software increment of PMNC registers
+event:0x01 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1I_CACHE_REFILL : Level 1 instruction cache refill
+event:0x02 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1I_TLB_REFILL : Level 1 instruction TLB refill
+event:0x03 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1D_CACHE_REFILL : Level 1 data cache refill
+event:0x04 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1D_CACHE : Level 1 data cache access
+event:0x05 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1D_TLB_REFILL : Level 1 data TLB refill
+event:0x06 counters:1,2,3,4,5,6 um:zero minimum:500 name:LD_RETIRED : Load instruction architecturally executed, condition code pass
+event:0x07 counters:1,2,3,4,5,6 um:zero minimum:500 name:ST_RETIRED : Store instruction architecturally executed, condition code pass
+event:0x08 counters:1,2,3,4,5,6 um:zero minimum:500 name:INST_RETIRED : Instruction architecturally executed
+event:0x09 counters:1,2,3,4,5,6 um:zero minimum:500 name:EXC_TAKEN : Exception taken
+event:0x0A counters:1,2,3,4,5,6 um:zero minimum:500 name:EXC_RETURN : Exception return instruction architecturally executed
+event:0x0B counters:1,2,3,4,5,6 um:zero minimum:500 name:CID_WRITE_RETIRED : Write to CONTEXTIDR register architecturally executed
+event:0x0C counters:1,2,3,4,5,6 um:zero minimum:500 name:PC_WRITE_RETIRED : Software change of the PC architecturally executed, condition code pass
+event:0x0D counters:1,2,3,4,5,6 um:zero minimum:500 name:BR_IMMED_RETIRED : Immediate branch instruction architecturally executed
+event:0x0E counters:1,2,3,4,5,6 um:zero minimum:500 name:BR_RETURN_RETIRED : Procedure return instruction architecturally executed, condition code pass
+event:0x0F counters:1,2,3,4,5,6 um:zero minimum:500 name:UNALIGNED_LDST_RETIRED : Unaligned load or store instruction architecturally executed, condition code pass
+event:0x10 counters:1,2,3,4,5,6 um:zero minimum:500 name:BR_MIS_PRED : Mispredicted or not predicted branch speculatively executed
+
+event:0x12 counters:1,2,3,4,5,6 um:zero minimum:500 name:BR_PRED : Predictable branch speculatively executed
+event:0x13 counters:1,2,3,4,5,6 um:zero minimum:500 name:MEM_ACCESS : Data memory access
+event:0x14 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1I_CACHE : Level 1 instruction cache access
+event:0x15 counters:1,2,3,4,5,6 um:zero minimum:500 name:L1D_CACHE_WB : Level 1 data cache write-back
+event:0x16 counters:1,2,3,4,5,6 um:zero minimum:500 name:L2D_CACHE : Level 2 data cache access
+event:0x17 counters:1,2,3,4,5,6 um:zero minimum:500 name:L2D_CACHE_REFILL : Level 2 data cache refill
+event:0x18 counters:1,2,3,4,5,6 um:zero minimum:500 name:L2D_CACHE_WB : Level 2 data cache write-back
+event:0x19 counters:1,2,3,4,5,6 um:zero minimum:500 name:BUS_ACCESS : Bus access
+event:0x1A counters:1,2,3,4,5,6 um:zero minimum:500 name:MEMORY_ERROR : Local memory error
+event:0x1B counters:1,2,3,4,5,6 um:zero minimum:500 name:INST_SPEC : Instruction speculatively executed
+event:0x1C counters:1,2,3,4,5,6 um:zero minimum:500 name:TTBR_WRITE_RETIRED : Write to TTBR architecturally executed, condition code pass
+event:0x1D counters:1,2,3,4,5,6 um:zero minimum:500 name:BUS_CYCLES : Bus cycle
+
+event:0xFF counters:0 um:zero minimum:500 name:CPU_CYCLES : CPU cycle
