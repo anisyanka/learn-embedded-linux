@@ -15,6 +15,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
   - [Installing all images to the BBB](#Installing-all-images-to-the-BBB)
     - [Flash uboot to SD](#Flash-uboot-to-SD)
     - [Setup NFS](#Setup-NFS)
+  - [Boot the system](#Boot-the-system)
 
 ## Study plan
 
@@ -294,7 +295,7 @@ network connection. The BBB and u-boot(see compiling config) support Ethernet ov
 
 **Setup TFTP**
 
-For u-boot:
+ - For u-boot:
 ```
 => setenv ipaddr 192.168.0.100
 => setenv serverip 192.168.0.1
@@ -310,12 +311,12 @@ USB device connection yet, because it’s only active when the board turns it on
 from Linux. When this happens, the network interface name will be enx<macaddr>. Given the
 value we gave to usbnet_hostaddr, it will therefore be enxf8dc7a000001.
 
-For workstation:
+ - For workstation:
 ```sh
 sudo apt install tftpd-hpa
 ```
 
-Set network interface:
+ - Set network interface:
 ```sh
 nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
 ```
@@ -326,7 +327,7 @@ from u-boot with help:
 tftp 0x81000000(any SDRAM address) <file-name-in-/var/lib/tftpboot-directory>
 ```
 
-Add support ethernet over USB to LInux kernel config(needs for NSF over USB):
+ - Add support ethernet over USB to LInux kernel config(needs for NSF over USB):
 ```
 CONFIG_USB_GADGET=y
 CONFIG_USB_MUSB_HDRC=y
@@ -337,10 +338,27 @@ CONFIG_USB_ETH=y
 CONFIG_ROOT_NFS=y
 ```
 
-Setup NFS server:
+**Setup NFS server:**
 ```sh
 1. sudo apt-get install nfs-kernel-server
 2. Add
 `<pwd-to-rootfs> 192.168.0.100(rw,no_root_squash,no_subtree_check)` line to /etc/exports file as root
 3. sudo /etc/init.d/nfs-kernel-server restart
+4. sudo /usr/sbin/exportfs -a
+5. sudo /usr/sbin/exportfs -rv
+```
+
+## Boot the system
+Before booting the kernel, we need to tell it which console to use and that
+the root filesystem should be mounted over NFS, by setting some kernel parameters.
+
+```sh
+setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::usb0 console=ttyS0,115200n8 g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01 nfsroot=192.168.0.1:<set-pwd-to-rootfs>,nfsvers=3
+saveenv
+```
+
+Automate the boot process:
+```sh
+setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
+saveenv
 ```
