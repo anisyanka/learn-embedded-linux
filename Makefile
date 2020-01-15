@@ -24,6 +24,9 @@ KERNEL_BINARIES_DIR=$(LEARN_LINUX_PROJ_ROOT)/out/kernel
 # BBB dtb
 DTB=am335x-boneblack.dtb
 
+# tftp
+TFTP_DIR=/var/lib/tftpboot/
+
 all: uboot kernel
 
 uboot:
@@ -72,6 +75,9 @@ kernel:
 		$(KERNEL_BUILD_DIR)/vmlinux                       \
 		$(KERNEL_BUILD_DIR)/.config                       \
 		--target-directory=$(KERNEL_BINARIES_DIR)
+	sudo cp $(KERNEL_BINARIES_DIR)/zImage                     \
+		$(KERNEL_BINARIES_DIR)/$(DTB)                     \
+		--target-directory=$(TFTP_DIR)
 
 clean:
 	$(MAKE) -C $(UBOOT_SRC_DIR)                   \

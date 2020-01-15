@@ -292,7 +292,9 @@ The next step is to configure u-boot and workstation to let the board download f
 such as the kernel image and Device Tree Binary (DTB), using the TFTP protocol through a
 network connection. The BBB and u-boot(see compiling config) support Ethernet over USB.
 
-**Setup TFTP on uboot:**
+**Setup TFTP**
+
+For u-boot:
 ```
 => setenv ipaddr 192.168.0.100
 => setenv serverip 192.168.0.1
@@ -303,23 +305,42 @@ network connection. The BBB and u-boot(see compiling config) support Ethernet ov
 ```
 Then reset board(need that uboot read params again) and go to the u-boot again.
 
-**Setup TFTP on workstation:**
-
 We won’t be able to see the network interface corresponding to the Ethernet over
 USB device connection yet, because it’s only active when the board turns it on, from u-boot or
 from Linux. When this happens, the network interface name will be enx<macaddr>. Given the
 value we gave to usbnet_hostaddr, it will therefore be enxf8dc7a000001.
 
-Install TFTP deamon or run `./scripts/install_host_deps.sh`
-```
+For workstation:
+```sh
 sudo apt install tftpd-hpa
 ```
-**Set network interface:**
-```
+
+Set network interface:
+```sh
 nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
 ```
+
 After installing we can put any files in the `/var/lib/tftpboot` on workstation and download this file
 from u-boot with help:
+```sh
+tftp 0x81000000(any SDRAM address) <file-name-in-/var/lib/tftpboot-directory>
 ```
-tftp 0x81000000(any raw address) <file-name-in-/var/lib/tftpboot-directory>
+
+Add support ethernet over USB to LInux kernel config(needs for NSF over USB):
+```
+CONFIG_USB_GADGET=y
+CONFIG_USB_MUSB_HDRC=y
+CONFIG_USB_MUSB_GADGET=y
+CONFIG_USB_MUSB_DSPS=y
+CONFIG_AM335X_PHY_USB=y
+CONFIG_USB_ETH=y
+CONFIG_ROOT_NFS=y
+```
+
+Setup NFS server:
+```sh
+1. sudo apt-get install nfs-kernel-server
+2. Add
+`<pwd-to-rootfs> 192.168.0.100(rw,no_root_squash,no_subtree_check)` line to /etc/exports file as root
+3. sudo /etc/init.d/nfs-kernel-server restart
 ```
