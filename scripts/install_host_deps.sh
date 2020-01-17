@@ -10,4 +10,7 @@ sudo apt-get install    bison             \
                         libssl-dev        \
                         tftpd-hpa         \
                         tftp              \
-                        nfs-kernel-server
+                        nfs-kernel-server \
+                        nfs-common        \
+                        portmap
+

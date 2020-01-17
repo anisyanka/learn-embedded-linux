@@ -314,6 +314,7 @@ value we gave to usbnet_hostaddr, it will therefore be enxf8dc7a000001.
  - For workstation:
 ```sh
 sudo apt install tftpd-hpa
+sudo apt install tftp
 ```
 
  - Set network interface:
@@ -321,13 +322,16 @@ sudo apt install tftpd-hpa
 nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
 ```
 
+After this we can try to `ping 192.168.0.1` from u-boot. It can help to ensure that ethernet over usb works right and
+that the interface on workstation has been uped right.
+
 After installing we can put any files in the `/var/lib/tftpboot` on workstation and download this file
 from u-boot with help:
 ```sh
 tftp 0x81000000(any SDRAM address) <file-name-in-/var/lib/tftpboot-directory>
 ```
 
- - Add support ethernet over USB to LInux kernel config(needs for NSF over USB):
+ - Add support ethernet over USB to LInux kernel config(needs for NSF over USB) and rebuild the kernel:
 ```
 CONFIG_USB_GADGET=y
 CONFIG_USB_MUSB_HDRC=y
@@ -340,12 +344,11 @@ CONFIG_ROOT_NFS=y
 
 **Setup NFS server:**
 ```sh
-1. sudo apt-get install nfs-kernel-server
+1. sudo apt-get install nfs-kernel-server nfs-common portmap
 2. Add
 `<pwd-to-rootfs> 192.168.0.100(rw,no_root_squash,no_subtree_check)` line to /etc/exports file as root
-3. sudo /etc/init.d/nfs-kernel-server restart
-4. sudo /usr/sbin/exportfs -a
-5. sudo /usr/sbin/exportfs -rv
+3. sudo /usr/sbin/exportfs -arv
+4. sudo /etc/init.d/nfs-kernel-server restart
 ```
 
 ## Boot the system
@@ -353,12 +356,12 @@ Before booting the kernel, we need to tell it which console to use and that
 the root filesystem should be mounted over NFS, by setting some kernel parameters.
 
 ```sh
-setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::usb0 console=ttyS0,115200n8 g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01 nfsroot=192.168.0.1:<set-pwd-to-rootfs>,nfsvers=3
-saveenv
+=> setenv bootargs console=ttyO0,115200n8 root=/dev/nfs rw rootwait nfsroot=192.168.0.1:/home/OMP/a.anisimov/proj/learn-embedded-linux/linux-kernel-labs/modules/nfsroot ip=192.168.0.100:192.168.0.1:192.168.0.1:255.255.255.0::usb0:off g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01
+=> saveenv
 ```
 
 Automate the boot process:
 ```sh
-setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
-saveenv
+=> setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
+=> saveenv
 ```
