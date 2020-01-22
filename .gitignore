@@ -12,3 +12,6 @@
 
 # Build files
 build/
+
+# rootfs files
+*.ash_history

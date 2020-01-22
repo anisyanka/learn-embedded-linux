@@ -12,5 +12,6 @@ sudo apt-get install    bison             \
                         tftp              \
                         nfs-kernel-server \
                         nfs-common        \
-                        portmap
+                        portmap           \
+                        qt5-default
 

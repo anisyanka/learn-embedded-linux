@@ -1,4 +1,5 @@
-.PHONY: uboot kernel kernel_config install_host_deps clean
+.PHONY: uboot kernel kernel_config install_host_deps
+	uboot_clean kernel_clean clean
 
 ARCH=arm
 SCRIPTS_DIR=scripts
@@ -29,13 +30,7 @@ TFTP_DIR=/var/lib/tftpboot/
 
 all: uboot kernel
 
-uboot:
-	$(MAKE) -C $(UBOOT_SRC_DIR)                   \
-		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
-		ARCH=$(ARCH)                          \
-		O=$(UBOOT_BUILD_DIR)                  \
-		distclean
-
+uboot: uboot_clean
 	$(MAKE) -C $(UBOOT_SRC_DIR)                      \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
@@ -50,19 +45,26 @@ uboot:
 	cp $(UBOOT_BUILD_DIR)/MLO $(UBOOT_BUILD_DIR)/u-boot* \
 		--target-directory=$(UBOOT_BINARIES_DIR)
 
-kernel:
-	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
+uboot_clean:
+	$(MAKE) -C $(UBOOT_SRC_DIR)                   \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
-		O=$(KERNEL_BUILD_DIR)                 \
+		O=$(UBOOT_BUILD_DIR)                  \
 		distclean
 
-	# after this .config file will place in the `KERNEL_BUILD_DIR`
+kernel_config:
+	cp $(KERNEL_BINARIES_DIR)/.config --target-directory=$(KERNEL_BUILD_DIR)
+
 	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
 		O=$(KERNEL_BUILD_DIR)                 \
-		multi_v7_defconfig
+		menuconfig
+
+	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
+
+kernel: kernel_clean
+	cp $(KERNEL_BINARIES_DIR)/.config --target-directory=$(KERNEL_BUILD_DIR)
 
 	$(MAKE) -j 8 -C $(KERNEL_SRC_DIR)             \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
@@ -75,31 +77,19 @@ kernel:
 		$(KERNEL_BUILD_DIR)/vmlinux                       \
 		$(KERNEL_BUILD_DIR)/.config                       \
 		--target-directory=$(KERNEL_BINARIES_DIR)
+
 	sudo cp $(KERNEL_BINARIES_DIR)/zImage                     \
 		$(KERNEL_BINARIES_DIR)/$(DTB)                     \
 		--target-directory=$(TFTP_DIR)
 
-clean:
-	$(MAKE) -C $(UBOOT_SRC_DIR)                   \
-		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
-		ARCH=$(ARCH)                          \
-		O=$(UBOOT_BUILD_DIR)                  \
-		distclean
-
+kernel_clean:
 	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
 		O=$(KERNEL_BUILD_DIR)                 \
 		distclean
 
-kernel_config:
-	$(MAKE) -C $(KERNEL_SRC_DIR)             \
-		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
-		ARCH=$(ARCH)                          \
-		O=$(KERNEL_BUILD_DIR)                 \
-		menuconfig
-
-	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
+clean: uboot_clean kernel_clean
 
 install_host_deps:
 	@./$(SCRIPTS_DIR)/install_host_deps.sh

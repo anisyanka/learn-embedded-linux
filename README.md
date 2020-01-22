@@ -317,12 +317,12 @@ sudo apt install tftpd-hpa
 sudo apt install tftp
 ```
 
- - Set network interface:
+ - Set network interface for eth-ver-usb:
 ```sh
 nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
 ```
 
-After this we can try to `ping 192.168.0.1` from u-boot. It can help to ensure that ethernet over usb works right and
+After this we can try to `ping 192.168.0.1` from u-boot. It can help to ensure that ethernet over usb works from uboot right and
 that the interface on workstation has been uped right.
 
 After installing we can put any files in the `/var/lib/tftpboot` on workstation and download this file
@@ -341,6 +341,8 @@ CONFIG_AM335X_PHY_USB=y
 CONFIG_USB_ETH=y
 CONFIG_ROOT_NFS=y
 ```
+I have used `make menuconfig`(it setups dependencies) and [this](https://elinux.org/BeagleBone_Usb_Networking) to enable eth-over-usb.
+We need to use eth-over-usb during booting, that's why we must set this configs only as static [=y], not as modules [=m].
 
 **Setup NFS server:**
 ```sh
@@ -356,7 +358,8 @@ Before booting the kernel, we need to tell it which console to use and that
 the root filesystem should be mounted over NFS, by setting some kernel parameters.
 
 ```sh
-=> setenv bootargs console=ttyO0,115200n8 root=/dev/nfs rw rootwait nfsroot=192.168.0.1:/home/OMP/a.anisimov/proj/learn-embedded-linux/linux-kernel-labs/modules/nfsroot ip=192.168.0.100:192.168.0.1:192.168.0.1:255.255.255.0::usb0:off g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01
+=> setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::usb0 console=ttyO0,115200n8 g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01 nfsroot=192.168.0.1:<pwd-to-rootfs>,nfsvers=3 init=/linuxrc
+
 => saveenv
 ```
 
