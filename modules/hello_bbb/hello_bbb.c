@@ -7,16 +7,13 @@
 #include <linux/device.h> 
 #include <linux/init.h>
 
-extern int GLOBAL_VARIABLE;
-extern void calculator(int x, int y);
-
 /*
  * This is the starting point of the kernel module's code execution.
  * There you can allocate some memory, init global variables and so on.
  */
 static int __init solution_init(void)
 {
-	calculator(12, 543);
+	printk(KERN_INFO "Hello, BBB\n");
 
 	return 0;
 }
@@ -31,12 +28,12 @@ static int __init solution_init(void)
  */
 static void __exit solution_exit(void)
 {
-	printk(KERN_INFO "GLOBAL_VARIABLE = %d", GLOBAL_VARIABLE);
+	printk(KERN_INFO "Goodbuy, BBB\n");
 }
 
 module_init(solution_init);
 module_exit(solution_exit);
 
-MODULE_DESCRIPTION("Learn Linux Kernel with stepik.org");
+MODULE_DESCRIPTION("Learn Linux Kernel with Bootlin");
 MODULE_AUTHOR("Aleksandr Anisimov <anisimov.alexander.s@gmail.com>");
 MODULE_LICENSE("GPL");

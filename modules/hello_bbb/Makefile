@@ -1,5 +1,4 @@
-obj-m += strmodule.o
-obj-m += strtest.o
+obj-m += hello_bbb.o
 
 all:
 	sudo $(MAKE) -C $(BUILD_DIR)            \

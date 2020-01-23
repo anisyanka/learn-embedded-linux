@@ -31,7 +31,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
   - Learn how to write kernel modules
 
 **[Bootlin's](https://bootlin.com/doc/training/linux-kernel/) laboratory works about Linux kernel course**
-  - Make "Hello world" kernel module
+  - [Make](https://www.kernel.org/doc/Documentation/kbuild/modules.txt) "Hello world" kernel module
   - Make I2C-driver for external I2C-device
   - Make driver avaliable in user-space through `/dev/devname`
   - Realize `fops` struct for i2c-device
@@ -359,7 +359,6 @@ the root filesystem should be mounted over NFS, by setting some kernel parameter
 
 ```sh
 => setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::usb0 console=ttyO0,115200n8 g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01 nfsroot=192.168.0.1:<pwd-to-rootfs>,nfsvers=3 init=/linuxrc
-
 => saveenv
 ```
 

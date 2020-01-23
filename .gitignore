@@ -3,7 +3,6 @@
 
 # Kernel modules files
 *.o
-*.ko
 .tmp_versions/
 *.cmd
 *.symvers

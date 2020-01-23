@@ -1,5 +1,10 @@
-obj-m += strmodule.o
-obj-m += strtest.o
+MODULE_NAME=rtc
+KO=$(MODULE_NAME).ko
+
+OBJ = rtc_main.o rtc_fops.o
+
+obj-m += rtc_ds3231.o
+rtc_ds3231-objs := $(OBJ)
 
 all:
 	sudo $(MAKE) -C $(BUILD_DIR)            \
