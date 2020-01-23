@@ -29,7 +29,7 @@ DTB=am335x-boneblack.dtb
 TFTP_DIR=/var/lib/tftpboot/
 
 # modues install path
-MOD_PATH=$(LEARN_LINUX_PROJ_ROOT)/linux-kernel-labs/modules/nfsroot/
+MOD_PATH=$(LEARN_LINUX_PROJ_ROOT)/nfsroot/
 
 all: uboot kernel
 
