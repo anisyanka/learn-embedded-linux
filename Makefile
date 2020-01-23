@@ -1,5 +1,5 @@
 .PHONY: uboot kernel kernel_config install_host_deps
-	uboot_clean kernel_clean clean
+	uboot_clean kernel_clean clean kernel_mod_install
 
 ARCH=arm
 SCRIPTS_DIR=scripts
@@ -27,6 +27,9 @@ DTB=am335x-boneblack.dtb
 
 # tftp
 TFTP_DIR=/var/lib/tftpboot/
+
+# modues install path
+MOD_PATH=$(LEARN_LINUX_PROJ_ROOT)/linux-kernel-labs/modules/nfsroot/
 
 all: uboot kernel
 
@@ -81,6 +84,13 @@ kernel: kernel_clean
 	sudo cp $(KERNEL_BINARIES_DIR)/zImage                     \
 		$(KERNEL_BINARIES_DIR)/$(DTB)                     \
 		--target-directory=$(TFTP_DIR)
+
+kernel_mod_install:
+	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
+		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
+		ARCH=$(ARCH)                          \
+		INSTALL_MOD_PATH=$(MOD_PATH)          \
+		O=$(KERNEL_BUILD_DIR) modules_install
 
 kernel_clean:
 	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
