@@ -7,13 +7,16 @@
 #include <linux/device.h> 
 #include <linux/init.h>
 
+#include <linux/version.h>
+#include <generated/compile.h>
+
 /*
  * This is the starting point of the kernel module's code execution.
  * There you can allocate some memory, init global variables and so on.
  */
 static int __init solution_init(void)
 {
-	printk(KERN_INFO "Hello, BBB\n");
+	printk(KERN_INFO "Hello, BBB! I am Linux compiled by " UTS_VERSION "with help "LINUX_COMPILER "\n");
 
 	return 0;
 }
