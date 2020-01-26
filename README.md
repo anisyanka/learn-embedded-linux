@@ -16,6 +16,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
     - [Flash uboot to SD](#Flash-uboot-to-SD)
     - [Setup NFS](#Setup-NFS)
   - [Boot the system](#Boot-the-system)
+  - [Device Tree](#Device-Tree)
 
 ## Study plan
 
@@ -367,3 +368,6 @@ Automate the boot process:
 => setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
 => saveenv
 ```
+
+## Device Tree
+---in progress---

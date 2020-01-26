@@ -1,6 +1,7 @@
-.PHONY: uboot kernel kernel_config install_host_deps \
-	my_modules my_modules_clean                  \
-	$(MY_MODULES_NAMES) $(MY_MODULES_CLEAN_NAMES)
+.PHONY: uboot kernel kernel_config install_host_deps  \
+	my_modules my_modules_clean                   \
+	$(MY_MODULES_NAMES) $(MY_MODULES_CLEAN_NAMES) \
+	dtb
 
 ARCH=arm
 SCRIPTS_DIR=scripts
@@ -24,7 +25,9 @@ UBOOT_BINARIES_DIR=$(LEARN_LINUX_PROJ_ROOT)/out/uboot
 KERNEL_BINARIES_DIR=$(LEARN_LINUX_PROJ_ROOT)/out/kernel
 
 # BBB dtb
-DTB=am335x-boneblack.dtb
+DTS_DIR=$(LEARN_LINUX_PROJ_ROOT)/$(KERNEL_SRC_DIR)/arch/$(ARCH)/boot/dts
+DTS=am335x-boneblack-custom.dts
+DTB=am335x-boneblack-custom.dtb
 
 # tftp
 TFTP_DIR=/var/lib/tftpboot/
@@ -85,6 +88,15 @@ kernel_config:
 		menuconfig
 
 	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
+
+dtb:
+	$(MAKE) -j 8 -C $(KERNEL_SRC_DIR)             \
+		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
+		ARCH=$(ARCH)                          \
+		O=$(KERNEL_BUILD_DIR) dtbs
+
+	cp $(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/dts/$(DTB) $(KERNEL_BINARIES_DIR)
+	sudo cp $(KERNEL_BINARIES_DIR)/$(DTB) $(TFTP_DIR)
 
 kernel:
 	$(MAKE) -C $(KERNEL_SRC_DIR)                  \
