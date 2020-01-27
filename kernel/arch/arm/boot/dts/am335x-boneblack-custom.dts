@@ -5,27 +5,38 @@
 
 #include "am335x-boneblack.dts"
 
-/ {
-	compatible = "ti,am33xx";
+#include <dt-bindings/display/tda998x.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 
-	fragment@0 {
-		target = <&am33xx_pinmux>;
-
-		__overlay__ {
-			i2c1_pins: pinmux_i2c1_pins {
-				pinctrl-single,pins = <
-					0x158 0x72  spi0_d1.i2c1_sda  
-					0x15C 0x72 /* spi0_cs0.i2c1_sdl */
-				>;
-			};
-		};
+/*
+ * P9 pin 17 - I2C1_SCL
+ * P9 pin 18 - I2C1_SDA
+ */
+&am33xx_pinmux {
+	i2c1_pins: pinmux_i2c1_pins {
+		pinctrl-single,pins = <
+			AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE2) /* spi0_d1.i2c1_sda */
+			AM33XX_IOPAD(0x95c, PIN_INPUT_PULLUP | MUX_MODE2) /* spi0_cs0.i2c1_scl */
+		>;
 	};
+};
 
-	fragment@1 {
-		target = <&i2c1>;
+/* enable i2c1 device, because we use it bus for external i2c devices */
+&i2c1 {
+	inctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+	clock-frequency = <100000>;
+	status = "okay";
 
-		__overlay__ {
-			status = "okay";
-		};
+	/*
+	 * i2c slave address (from 7 to 1 bit) = 0x68
+	 * 0 bit = 0 --> write operation
+	 * 0 bit = 1 --> read operation
+	 */
+	rtc_ds3231: ds3231@68 {
+		compatible = "dallas,ds3231";
+		#address-cell = <1>;
+		#size-cell = <0>;
+		reg = <0x68>;
 	};
-}; /* root node end */
+};
