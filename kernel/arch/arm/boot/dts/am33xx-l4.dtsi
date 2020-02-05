@@ -268,7 +268,7 @@
 			ranges = <0x00000000 0x00010000 0x00010000>,
 				 <0x00010000 0x00020000 0x00010000>;
 
-			scm: scm@0 {
+			scm: scm@0 {	/* Control Module */
 				compatible = "ti,am3-scm", "simple-bus";
 				reg = <0x0 0x2000>;
 				#address-cells = <1>;
@@ -276,7 +276,7 @@
 				#pinctrl-cells = <1>;
 				ranges = <0 0 0x2000>;
 
-				am33xx_pinmux: pinmux@800 {
+				am33xx_pinmux: pinmux@800 {	/* offset 0x800 for PAD registers */
 					compatible = "pinctrl-single";
 					reg = <0x800 0x238>;
 					#pinctrl-cells = <1>;

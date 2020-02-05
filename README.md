@@ -17,6 +17,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
     - [Setup NFS](#Setup-NFS)
   - [Boot the system](#Boot-the-system)
   - [Device Tree](#Device-Tree)
+    - [Beaglebone pins](#Beaglebone-pins)
 
 ## Study plan
 
@@ -57,7 +58,7 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
 3. Ultrasonic ranging module
 4. Power LED
 5. SPI OLED display
-6. User's GPIO LED
+6. User GPIO LED
 7. Temperature and humidity sensor
 8. Seven-segment display
 9. User's button
@@ -370,4 +371,55 @@ Automate the boot process:
 ```
 
 ## Device Tree
----in progress---
+My board uses some external GPIO pins, i2c and SPI buses. See to the schematics above.
+We must tell to the Linux kernel what pins we will use. We can describe our hardware with help [device tree](https://en.wikipedia.org/wiki/Device_tree).
+
+
+### Beaglebone pins
+
+AM335x chip - is a SoC. There is a control module into the one. See the [am3358_reference_manual.pdf](https://github.com/anisyanka/learn-embedded-linux/tree/master/tools/doc) p.1211. This module responds for device control and status and for I/O multiplexing.
+Each configurable pin has its own configuration register for pullup/down control and for it assignment.
+Control unit is started with `0x44e10000` address in memory map and after 0x800 offset there are all pin registers.
+It is named like `conf_<module>_<pin>`. This registers have only seven least significant bits (0-6).
+If we want set some assignment to some pin, we should write this 7 bits to corresponding register-pin address.
+
+**Bits in pin-register:**
+```
+      0 - fast slew rate
+     /
+bit 6
+     \
+      1 - slow slew rate
+
+      0 - disable receiver for input
+     /
+bit 5
+     \
+      1 - enable receiver for input
+
+      0 - pulldown selected
+     /
+bit 4
+     \
+      1 - pullup selected
+
+      0 - enabled pullup/down resistor
+     /
+bit 3
+     \
+      1 - disable pullup/down resistor
+
+bits 2-0 - pin mode.
+```
+For example if I want to setup user GPIO led on my board like ouput without pullip/down resistor (because there is
+external pulldown resistor and mosfet for enabling the led) I should write to `0x44e10000 + 0x844` register value
+`(uint32_t)(0 | 1 << 3 | mode) = output pullup/down disable`.
+
+**What is happening here?**
+
+My gpio led connected to P9.23 pin to the beaglebone. It pin corresponds to GPIO1_17.
+This corresponds `conf_gpmc_a1` regtister. It has 0x844 offset from the start of control module. It's all.
+See [am3358_briefly_datasheet.pdf](https://github.com/anisyanka/learn-embedded-linux/tree/master/tools/doc) for pin mode details (Pin Attributes table).
+
+**Linux pinmux system**
+

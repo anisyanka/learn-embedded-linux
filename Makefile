@@ -34,7 +34,7 @@ TFTP_DIR=/var/lib/tftpboot/
 
 # modues install and build path
 TARGET_NFS_ROOT_DIR=$(LEARN_LINUX_PROJ_ROOT)/nfsroot
-TARGET_MOD_DIR_FOR_BUILD=$(TARGET_NFS_ROOT_DIR)/lib/modules/5.5.0-rc6/build
+TARGET_MOD_DIR_FOR_BUILD=$(TARGET_NFS_ROOT_DIR)/lib/modules/5.5.0/build
 TARGET_MY_MOD_INSTALL_PATH=$(TARGET_NFS_ROOT_DIR)/root/modules
 
 # my modules
@@ -93,6 +93,8 @@ kernel_config:
 	cp $(KERNEL_BUILD_DIR)/.config --target-directory=$(KERNEL_BINARIES_DIR)
 
 dtb:
+	cp $(KERNEL_BINARIES_DIR)/.config --target-directory=$(KERNEL_BUILD_DIR)
+
 	$(MAKE) -C $(KERNEL_SRC_DIR)              \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
