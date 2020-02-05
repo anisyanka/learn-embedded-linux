@@ -1,12 +1,9 @@
 # Editor
 .vscode/
 
-# Kernel modules files
-*.o
-.tmp_versions/
-*.cmd
-*.symvers
-*.order
+# # Kernel modules files
+# *.o
+# .tmp_versions/
 
 # Build files
 build/
