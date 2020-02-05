@@ -7,7 +7,7 @@ AR=$(CC_PREFX)ar
 STRIP=$(CC_PREFX)strip
 
 # Compiling/linking flags
-USER_APPS_CCPFLAGS=-std=gnu99 -Wall -g
+USER_APPS_CCPFLAGS=-std=gnu99 -Wall -g -static
 USER_APPS_LDFLAGS=-lc -lm
 
 # tests
@@ -16,7 +16,7 @@ LED_O=led_test
 
 all:
 	$(CC) $(USER_APPS_CCPFLAGS) $(LED_C) -o $(LED_O)
-	sudo cp $(LED_O) --target-directory=$(NFS)/root
+	sudo cp $(LED_O) --target-directory=$(NFS)/root/user_space_drv_test
 
 clean:
 	rm -rf *.o $(LED_O)
