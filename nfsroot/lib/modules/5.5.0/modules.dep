@@ -1,0 +1,527 @@
+kernel/arch/arm/crypto/aes-arm.ko:
+kernel/arch/arm/crypto/aes-arm-bs.ko: kernel/crypto/crypto_simd.ko kernel/crypto/cryptd.ko
+kernel/arch/arm/crypto/sha1-arm.ko:
+kernel/arch/arm/crypto/sha1-arm-neon.ko: kernel/arch/arm/crypto/sha1-arm.ko
+kernel/arch/arm/crypto/sha256-arm.ko:
+kernel/arch/arm/crypto/sha512-arm.ko:
+kernel/arch/arm/crypto/chacha-neon.ko:
+kernel/arch/arm/crypto/aes-arm-ce.ko: kernel/crypto/crypto_simd.ko kernel/crypto/cryptd.ko
+kernel/arch/arm/crypto/sha1-arm-ce.ko: kernel/arch/arm/crypto/sha1-arm.ko
+kernel/arch/arm/crypto/sha2-arm-ce.ko: kernel/arch/arm/crypto/sha256-arm.ko
+kernel/arch/arm/crypto/ghash-arm-ce.ko: kernel/crypto/gf128mul.ko kernel/crypto/cryptd.ko
+kernel/arch/arm/crypto/crc32-arm-ce.ko:
+kernel/arch/arm/plat-pxa/ssp.ko:
+kernel/fs/efivarfs/efivarfs.ko:
+kernel/crypto/seqiv.ko:
+kernel/crypto/echainiv.ko:
+kernel/crypto/crypto_user.ko:
+kernel/crypto/cmac.ko:
+kernel/crypto/hmac.ko:
+kernel/crypto/md5.ko:
+kernel/crypto/sha1_generic.ko:
+kernel/crypto/sha256_generic.ko: kernel/lib/crypto/libsha256.ko
+kernel/crypto/sha512_generic.ko:
+kernel/crypto/gf128mul.ko:
+kernel/crypto/ctr.ko:
+kernel/crypto/gcm.ko:
+kernel/crypto/ccm.ko:
+kernel/crypto/cryptd.ko:
+kernel/crypto/des_generic.ko: kernel/lib/crypto/libdes.ko
+kernel/crypto/authenc.ko:
+kernel/crypto/authencesn.ko: kernel/crypto/authenc.ko
+kernel/crypto/drbg.ko:
+kernel/crypto/jitterentropy_rng.ko:
+kernel/crypto/ghash-generic.ko: kernel/crypto/gf128mul.ko
+kernel/crypto/af_alg.ko:
+kernel/crypto/algif_hash.ko: kernel/crypto/af_alg.ko
+kernel/crypto/algif_skcipher.ko: kernel/crypto/af_alg.ko
+kernel/crypto/algif_rng.ko: kernel/crypto/af_alg.ko
+kernel/crypto/algif_aead.ko: kernel/crypto/af_alg.ko
+kernel/crypto/ecc.ko:
+kernel/crypto/ecdh_generic.ko: kernel/crypto/ecc.ko
+kernel/crypto/crypto_simd.ko: kernel/crypto/cryptd.ko
+kernel/drivers/phy/allwinner/phy-sun6i-mipi-dphy.ko:
+kernel/drivers/phy/renesas/phy-rcar-gen2.ko:
+kernel/drivers/phy/rockchip/phy-rockchip-dp.ko:
+kernel/drivers/phy/marvell/phy-mmp3-usb.ko:
+kernel/drivers/phy/motorola/phy-cpcap-usb.ko:
+kernel/drivers/phy/qualcomm/phy-qcom-apq8064-sata.ko:
+kernel/drivers/phy/samsung/phy-exynos-usb2.ko:
+kernel/drivers/phy/samsung/phy-exynos5250-sata.ko:
+kernel/drivers/phy/ti/phy-dm816x-usb.ko:
+kernel/drivers/phy/ti/phy-twl4030-usb.ko:
+kernel/drivers/pwm/pwm-atmel.ko:
+kernel/drivers/pwm/pwm-atmel-hlcdc.ko:
+kernel/drivers/pwm/pwm-atmel-tcb.ko:
+kernel/drivers/pwm/pwm-brcmstb.ko:
+kernel/drivers/pwm/pwm-fsl-ftm.ko:
+kernel/drivers/pwm/pwm-meson.ko:
+kernel/drivers/pwm/pwm-rcar.ko:
+kernel/drivers/pwm/pwm-rockchip.ko:
+kernel/drivers/pwm/pwm-samsung.ko:
+kernel/drivers/pwm/pwm-stm32.ko: kernel/drivers/mfd/stm32-timers.ko
+kernel/drivers/pwm/pwm-stm32-lp.ko:
+kernel/drivers/pci/endpoint/functions/pci-epf-test.ko:
+kernel/drivers/char/ipmi/kcs_bmc.ko:
+kernel/drivers/char/ipmi/bt-bmc.ko:
+kernel/drivers/char/ipmi/kcs_bmc_aspeed.ko: kernel/drivers/char/ipmi/kcs_bmc.ko
+kernel/drivers/clk/clk-rk808.ko:
+kernel/drivers/clk/clk-s2mps11.ko:
+kernel/drivers/dma/sh/usb-dmac.ko:
+kernel/drivers/dma/st_fdma.ko: kernel/drivers/remoteproc/st_slim_rproc.ko
+kernel/drivers/soc/aspeed/aspeed-lpc-ctrl.ko:
+kernel/drivers/soc/aspeed/aspeed-lpc-snoop.ko:
+kernel/drivers/soc/aspeed/aspeed-p2a-ctrl.ko:
+kernel/drivers/soc/qcom/mdt_loader.ko:
+kernel/drivers/soc/qcom/smd-rpm.ko: kernel/drivers/rpmsg/rpmsg_core.ko
+kernel/drivers/soc/qcom/wcnss_ctrl.ko: kernel/drivers/rpmsg/rpmsg_core.ko
+kernel/drivers/regulator/max14577-regulator.ko:
+kernel/drivers/regulator/max8952.ko:
+kernel/drivers/regulator/max8997-regulator.ko:
+kernel/drivers/regulator/max8998.ko:
+kernel/drivers/regulator/max77693-regulator.ko:
+kernel/drivers/regulator/qcom_smd-regulator.ko: kernel/drivers/soc/qcom/smd-rpm.ko kernel/drivers/rpmsg/rpmsg_core.ko
+kernel/drivers/regulator/s2mpa01.ko:
+kernel/drivers/regulator/stm32-booster.ko:
+kernel/drivers/regulator/stm32-vrefbuf.ko:
+kernel/drivers/regulator/wm8994-regulator.ko:
+kernel/drivers/tty/serial/8250/8250_aspeed_vuart.ko:
+kernel/drivers/char/tpm/tpm.ko:
+kernel/drivers/char/tpm/tpm_i2c_infineon.ko: kernel/drivers/char/tpm/tpm.ko
+kernel/drivers/gpu/drm/rcar-du/rcar-du-drm.ko:
+kernel/drivers/gpu/drm/panel/panel-orisetech-otm8009a.ko:
+kernel/drivers/gpu/drm/panel/panel-raydium-rm68200.ko:
+kernel/drivers/gpu/drm/panel/panel-samsung-ld9040.ko:
+kernel/drivers/gpu/drm/panel/panel-samsung-s6e63j0x03.ko:
+kernel/drivers/gpu/drm/panel/panel-samsung-s6e8aa0.ko:
+kernel/drivers/gpu/drm/bridge/analogix/analogix_dp.ko:
+kernel/drivers/gpu/drm/bridge/synopsys/dw-hdmi.ko:
+kernel/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.ko:
+kernel/drivers/gpu/drm/bridge/dumb-vga-dac.ko:
+kernel/drivers/gpu/drm/bridge/nxp-ptn3460.ko:
+kernel/drivers/gpu/drm/bridge/parade-ps8622.ko:
+kernel/drivers/gpu/drm/bridge/sii902x.ko:
+kernel/drivers/gpu/drm/bridge/sii9234.ko:
+kernel/drivers/gpu/drm/bridge/tc358764.ko:
+kernel/drivers/gpu/drm/bridge/adv7511/adv7511.ko:
+kernel/drivers/gpu/drm/ttm/ttm.ko:
+kernel/drivers/gpu/drm/scheduler/gpu-sched.ko:
+kernel/drivers/gpu/drm/vc4/vc4.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/gpu/drm/nouveau/nouveau.ko: kernel/drivers/gpu/drm/ttm/ttm.ko
+kernel/drivers/gpu/drm/exynos/exynosdrm.ko: kernel/drivers/gpu/drm/bridge/analogix/analogix_dp.ko
+kernel/drivers/gpu/drm/rockchip/rockchipdrm.ko: kernel/drivers/gpu/drm/bridge/synopsys/dw-hdmi.ko kernel/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.ko kernel/drivers/gpu/drm/bridge/analogix/analogix_dp.ko
+kernel/drivers/gpu/drm/atmel-hlcdc/atmel-hlcdc-dc.ko:
+kernel/drivers/gpu/drm/sun4i/sun4i-drm.ko: kernel/drivers/gpu/drm/sun4i/sun4i-frontend.ko kernel/drivers/gpu/drm/sun4i/sun4i-tcon.ko kernel/drivers/gpu/drm/sun4i/sun8i_tcon_top.ko
+kernel/drivers/gpu/drm/sun4i/sun4i-tcon.ko: kernel/drivers/gpu/drm/sun4i/sun8i_tcon_top.ko
+kernel/drivers/gpu/drm/sun4i/sun4i_tv.ko:
+kernel/drivers/gpu/drm/sun4i/sun6i_drc.ko:
+kernel/drivers/gpu/drm/sun4i/sun4i-backend.ko: kernel/drivers/gpu/drm/sun4i/sun4i-frontend.ko
+kernel/drivers/gpu/drm/sun4i/sun4i-frontend.ko:
+kernel/drivers/gpu/drm/sun4i/sun4i-drm-hdmi.ko:
+kernel/drivers/gpu/drm/sun4i/sun6i_mipi_dsi.ko: kernel/lib/crc-ccitt.ko
+kernel/drivers/gpu/drm/sun4i/sun8i-mixer.ko:
+kernel/drivers/gpu/drm/sun4i/sun8i_tcon_top.ko:
+kernel/drivers/gpu/drm/msm/msm.ko: kernel/drivers/soc/qcom/mdt_loader.ko
+kernel/drivers/gpu/drm/stm/dw_mipi_dsi-stm.ko: kernel/drivers/gpu/drm/bridge/synopsys/dw-mipi-dsi.ko
+kernel/drivers/gpu/drm/stm/stm-drm.ko:
+kernel/drivers/gpu/drm/sti/sti-drm.ko:
+kernel/drivers/gpu/drm/fsl-dcu/fsl-dcu-drm.ko:
+kernel/drivers/gpu/drm/etnaviv/etnaviv.ko: kernel/drivers/gpu/drm/scheduler/gpu-sched.ko
+kernel/drivers/gpu/drm/mxsfb/mxsfb.ko:
+kernel/drivers/gpu/drm/pl111/pl111_drm.ko:
+kernel/drivers/gpu/drm/lima/lima.ko: kernel/drivers/gpu/drm/scheduler/gpu-sched.ko
+kernel/drivers/gpu/drm/panfrost/panfrost.ko: kernel/drivers/gpu/drm/scheduler/gpu-sched.ko
+kernel/drivers/gpu/drm/aspeed/aspeed_gfx.ko:
+kernel/drivers/base/regmap/regmap-ac97.ko:
+kernel/drivers/misc/atmel-ssc.ko:
+kernel/drivers/misc/qcom-coincell.ko:
+kernel/drivers/misc/pci_endpoint_test.ko:
+kernel/drivers/mfd/cros_ec_dev.ko:
+kernel/drivers/mfd/wm8994.ko:
+kernel/drivers/mfd/da9063.ko:
+kernel/drivers/mfd/max77693.ko:
+kernel/drivers/mfd/atmel-hlcdc.ko:
+kernel/drivers/mfd/stm32-lptimer.ko:
+kernel/drivers/mfd/stm32-timers.ko:
+kernel/drivers/nfc/s3fwrn5/s3fwrn5.ko: kernel/net/nfc/nci/nci.ko kernel/net/nfc/nfc.ko
+kernel/drivers/nfc/s3fwrn5/s3fwrn5_i2c.ko: kernel/drivers/nfc/s3fwrn5/s3fwrn5.ko kernel/net/nfc/nci/nci.ko kernel/net/nfc/nfc.ko
+kernel/drivers/mtd/spi-nor/aspeed-smc.ko:
+kernel/drivers/spi/spi-atmel.ko:
+kernel/drivers/spi/spi-fsl-dspi.ko:
+kernel/drivers/spi/spi-fsl-qspi.ko:
+kernel/drivers/spi/spi-gpio.ko:
+kernel/drivers/spi/spi-rockchip.ko:
+kernel/drivers/spi/spi-s3c64xx.ko:
+kernel/drivers/spi/spi-sh-msiof.ko:
+kernel/drivers/spi/spi-stm32.ko:
+kernel/drivers/net/phy/mdio-aspeed.ko:
+kernel/drivers/net/phy/mdio-bcm-unimac.ko:
+kernel/drivers/net/phy/mdio-mux-meson-g12a.ko:
+kernel/drivers/net/phy/bcm7xxx.ko:
+kernel/drivers/net/phy/microchip.ko:
+kernel/drivers/net/can/rcar/rcar_can.ko:
+kernel/drivers/net/can/at91_can.ko:
+kernel/drivers/net/can/flexcan.ko:
+kernel/drivers/net/dsa/b53/b53_common.ko: kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/dsa/b53/b53_spi.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/dsa/b53/b53_mdio.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/dsa/b53/b53_mmap.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/dsa/b53/b53_srab.ko: kernel/drivers/net/dsa/b53/b53_serdes.ko kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/dsa/b53/b53_serdes.ko:
+kernel/drivers/net/dsa/bcm-sf2.ko: kernel/drivers/net/dsa/b53/b53_common.ko kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/ethernet/broadcom/genet/genet.ko:
+kernel/drivers/net/ethernet/broadcom/bcmsysport.ko: kernel/net/dsa/dsa_core.ko
+kernel/drivers/net/ethernet/faraday/ftgmac100.ko:
+kernel/drivers/net/ethernet/marvell/pxa168_eth.ko:
+kernel/drivers/net/wireless/broadcom/brcm80211/brcmutil/brcmutil.ko:
+kernel/drivers/net/wireless/broadcom/brcm80211/brcmfmac/brcmfmac.ko: kernel/net/wireless/cfg80211.ko kernel/drivers/net/wireless/broadcom/brcm80211/brcmutil/brcmutil.ko
+kernel/drivers/net/wireless/marvell/mwifiex/mwifiex.ko: kernel/net/wireless/cfg80211.ko
+kernel/drivers/net/wireless/marvell/mwifiex/mwifiex_sdio.ko: kernel/drivers/net/wireless/marvell/mwifiex/mwifiex.ko kernel/net/wireless/cfg80211.ko
+kernel/drivers/net/wireless/ralink/rt2x00/rt2x00lib.ko: kernel/net/mac80211/mac80211.ko kernel/lib/crypto/libarc4.ko kernel/net/wireless/cfg80211.ko
+kernel/drivers/net/wireless/ralink/rt2x00/rt2x00usb.ko: kernel/drivers/net/wireless/ralink/rt2x00/rt2x00lib.ko kernel/net/mac80211/mac80211.ko kernel/lib/crypto/libarc4.ko kernel/net/wireless/cfg80211.ko
+kernel/drivers/net/wireless/ralink/rt2x00/rt2800lib.ko: kernel/drivers/net/wireless/ralink/rt2x00/rt2x00lib.ko kernel/net/mac80211/mac80211.ko kernel/lib/crypto/libarc4.ko kernel/net/wireless/cfg80211.ko kernel/lib/crc-ccitt.ko
+kernel/drivers/net/wireless/ralink/rt2x00/rt2800usb.ko: kernel/drivers/net/wireless/ralink/rt2x00/rt2x00usb.ko kernel/drivers/net/wireless/ralink/rt2x00/rt2800lib.ko kernel/drivers/net/wireless/ralink/rt2x00/rt2x00lib.ko kernel/net/mac80211/mac80211.ko kernel/lib/crypto/libarc4.ko kernel/net/wireless/cfg80211.ko kernel/lib/crc-ccitt.ko
+kernel/drivers/net/usb/r8152.ko:
+kernel/drivers/net/usb/lan78xx.ko:
+kernel/drivers/usb/phy/phy-twl6030-usb.ko:
+kernel/drivers/usb/phy/phy-keystone.ko:
+kernel/drivers/usb/host/ehci-omap.ko:
+kernel/drivers/usb/host/ohci-exynos.ko:
+kernel/drivers/usb/host/xhci-tegra.ko:
+kernel/drivers/usb/host/r8a66597-hcd.ko:
+kernel/drivers/usb/host/ehci-mv.ko:
+kernel/drivers/usb/storage/uas.ko:
+kernel/drivers/usb/musb/omap2430.ko:
+kernel/drivers/usb/musb/am35x.ko:
+kernel/drivers/usb/musb/tusb6010.ko:
+kernel/drivers/usb/musb/ux500.ko:
+kernel/drivers/usb/musb/sunxi.ko:
+kernel/drivers/usb/gadget/udc/aspeed-vhub/aspeed-vhub.ko:
+kernel/drivers/usb/gadget/function/usb_f_acm.ko: kernel/drivers/usb/gadget/function/u_serial.ko
+kernel/drivers/usb/gadget/function/usb_f_ss_lb.ko:
+kernel/drivers/usb/gadget/function/u_serial.ko:
+kernel/drivers/usb/gadget/function/usb_f_serial.ko: kernel/drivers/usb/gadget/function/u_serial.ko
+kernel/drivers/usb/gadget/function/usb_f_obex.ko: kernel/drivers/usb/gadget/function/u_serial.ko
+kernel/drivers/usb/gadget/function/usb_f_ncm.ko:
+kernel/drivers/usb/gadget/function/usb_f_eem.ko:
+kernel/drivers/usb/gadget/function/usb_f_mass_storage.ko:
+kernel/drivers/usb/gadget/function/usb_f_fs.ko:
+kernel/drivers/usb/gadget/function/u_audio.ko: kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/usb/gadget/function/usb_f_uac1.ko: kernel/drivers/usb/gadget/function/u_audio.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/usb/gadget/function/usb_f_uac1_legacy.ko: kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/usb/gadget/function/usb_f_uac2.ko: kernel/drivers/usb/gadget/function/u_audio.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/usb/gadget/function/usb_f_uvc.ko: kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/usb/gadget/function/usb_f_midi.ko: kernel/sound/core/snd-rawmidi.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/drivers/usb/gadget/function/usb_f_hid.ko:
+kernel/drivers/usb/gadget/function/usb_f_printer.ko:
+kernel/drivers/usb/renesas_usbhs/renesas_usbhs.ko:
+kernel/drivers/input/keyboard/cros_ec_keyb.ko:
+kernel/drivers/input/keyboard/pxa27x_keypad.ko:
+kernel/drivers/input/keyboard/qt1070.ko:
+kernel/drivers/input/keyboard/samsung-keypad.ko:
+kernel/drivers/input/mouse/cyapatp.ko: kernel/lib/crc-itu-t.ko
+kernel/drivers/input/touchscreen/resistive-adc-touch.ko: kernel/drivers/iio/buffer/industrialio-buffer-cb.ko
+kernel/drivers/input/touchscreen/atmel_mxt_ts.ko:
+kernel/drivers/input/touchscreen/elants_i2c.ko:
+kernel/drivers/input/touchscreen/mms114.ko:
+kernel/drivers/input/touchscreen/st1232.ko:
+kernel/drivers/input/touchscreen/wm97xx-ts.ko:
+kernel/drivers/input/misc/adxl34x.ko:
+kernel/drivers/input/misc/adxl34x-i2c.ko: kernel/drivers/input/misc/adxl34x.ko
+kernel/drivers/input/misc/adxl34x-spi.ko: kernel/drivers/input/misc/adxl34x.ko
+kernel/drivers/input/misc/cpcap-pwrbutton.ko:
+kernel/drivers/input/misc/max77693-haptic.ko: kernel/drivers/input/ff-memless.ko
+kernel/drivers/input/misc/max8997_haptic.ko: kernel/drivers/input/ff-memless.ko
+kernel/drivers/input/misc/axp20x-pek.ko:
+kernel/drivers/input/ff-memless.ko:
+kernel/drivers/rtc/rtc-aspeed.ko:
+kernel/drivers/rtc/rtc-at91rm9200.ko:
+kernel/drivers/rtc/rtc-at91sam9.ko:
+kernel/drivers/rtc/rtc-bq32k.ko:
+kernel/drivers/rtc/rtc-cpcap.ko:
+kernel/drivers/rtc/rtc-da9063.ko:
+kernel/drivers/rtc/rtc-digicolor.ko:
+kernel/drivers/rtc/rtc-efi.ko:
+kernel/drivers/rtc/rtc-hym8563.ko:
+kernel/drivers/rtc/rtc-max8997.ko:
+kernel/drivers/rtc/rtc-max8998.ko:
+kernel/drivers/rtc/rtc-meson-vrtc.ko:
+kernel/drivers/rtc/rtc-pcf85363.ko:
+kernel/drivers/rtc/rtc-rk808.ko:
+kernel/drivers/rtc/rtc-rs5c372.ko:
+kernel/drivers/rtc/rtc-rx8581.ko:
+kernel/drivers/rtc/rtc-s35390a.ko:
+kernel/drivers/rtc/rtc-s3c.ko:
+kernel/drivers/rtc/rtc-s5m.ko:
+kernel/drivers/rtc/rtc-sa1100.ko:
+kernel/drivers/i2c/busses/i2c-aspeed.ko:
+kernel/drivers/i2c/busses/i2c-at91.ko:
+kernel/drivers/i2c/busses/i2c-digicolor.ko:
+kernel/drivers/i2c/busses/i2c-emev2.ko:
+kernel/drivers/i2c/busses/i2c-gpio.ko:
+kernel/drivers/i2c/busses/i2c-cros-ec-tunnel.ko:
+kernel/drivers/i2c/muxes/i2c-arb-gpio-challenge.ko:
+kernel/drivers/media/i2c/adv7180.ko: kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/i2c/ov7670.ko: kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/i2c/ml86v7667.ko: kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/common/v4l2-tpg/v4l2-tpg.ko:
+kernel/drivers/media/common/videobuf2/videobuf2-common.ko: kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko: kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/common/videobuf2/videobuf2-memops.ko:
+kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko: kernel/drivers/media/common/videobuf2/videobuf2-memops.ko
+kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko: kernel/drivers/media/common/videobuf2/videobuf2-memops.ko
+kernel/drivers/media/common/videobuf2/videobuf2-dma-sg.ko: kernel/drivers/media/common/videobuf2/videobuf2-memops.ko
+kernel/drivers/media/platform/stm32/stm32-dcmi.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/aspeed-video.ko: kernel/drivers/media/v4l2-core/v4l2-dv-timings.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/marvell-ccic/mmp_camera.ko: kernel/drivers/media/platform/marvell-ccic/mcam-core.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-sg.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/marvell-ccic/mcam-core.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-sg.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/vivid/vivid.ko: kernel/drivers/media/common/v4l2-tpg/v4l2-tpg.ko kernel/drivers/media/v4l2-core/v4l2-dv-timings.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/exynos4-is/s5p-csis.ko: kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/exynos4-is/exynos-fimc-lite.ko: kernel/drivers/media/platform/exynos4-is/exynos4-is-common.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/exynos4-is/exynos-fimc-is.ko: kernel/drivers/media/platform/exynos4-is/exynos4-is-common.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/exynos4-is/s5p-fimc.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/platform/exynos4-is/exynos4-is-common.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/exynos4-is/exynos4-is-common.ko: kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/s5p-jpeg/s5p-jpeg.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/s5p-mfc/s5p-mfc.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/s5p-cec/s5p-cec.ko:
+kernel/drivers/media/platform/exynos-gsc/exynos-gsc.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/sti/bdisp/bdisp.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/sti/hva/st-hva.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/sti/delta/st-delta.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko kernel/drivers/rpmsg/rpmsg_core.ko
+kernel/drivers/media/platform/rcar_fdp1.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/rcar_jpu.ko: kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/vsp1/vsp1.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/rcar-vin/rcar-vin.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/platform/atmel/atmel-isi.ko: kernel/drivers/media/common/videobuf2/videobuf2-dma-contig.ko kernel/drivers/media/v4l2-core/v4l2-fwnode.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/usb/uvc/uvcvideo.ko: kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/usb/gspca/gspca_main.ko: kernel/drivers/media/common/videobuf2/videobuf2-vmalloc.ko kernel/drivers/media/common/videobuf2/videobuf2-memops.ko kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/mc/mc.ko:
+kernel/drivers/media/v4l2-core/v4l2-fwnode.ko: kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/v4l2-core/videodev.ko: kernel/drivers/media/mc/mc.ko
+kernel/drivers/media/v4l2-core/v4l2-dv-timings.ko:
+kernel/drivers/media/v4l2-core/v4l2-mem2mem.ko: kernel/drivers/media/common/videobuf2/videobuf2-v4l2.ko kernel/drivers/media/common/videobuf2/videobuf2-common.ko kernel/drivers/media/v4l2-core/videodev.ko kernel/drivers/media/mc/mc.ko
+kernel/drivers/power/supply/axp20x_usb_power.ko:
+kernel/drivers/power/supply/cpcap-battery.ko:
+kernel/drivers/power/supply/bq27xxx_battery.ko:
+kernel/drivers/power/supply/bq27xxx_battery_i2c.ko: kernel/drivers/power/supply/bq27xxx_battery.ko
+kernel/drivers/power/supply/max17040_battery.ko:
+kernel/drivers/power/supply/max17042_battery.ko:
+kernel/drivers/power/supply/cpcap-charger.ko:
+kernel/drivers/power/supply/gpio-charger.ko:
+kernel/drivers/power/supply/max14577_charger.ko:
+kernel/drivers/power/supply/max77693_charger.ko:
+kernel/drivers/power/supply/max8997_charger.ko:
+kernel/drivers/power/supply/max8998_charger.ko:
+kernel/drivers/hwmon/aspeed-pwm-tacho.ko:
+kernel/drivers/hwmon/ina2xx.ko:
+kernel/drivers/hwmon/ntc_thermistor.ko:
+kernel/drivers/hwmon/pwm-fan.ko:
+kernel/drivers/hwmon/raspberrypi-hwmon.ko:
+kernel/drivers/thermal/broadcom/bcm2835_thermal.ko:
+kernel/drivers/thermal/broadcom/brcmstb_thermal.ko:
+kernel/drivers/watchdog/s3c2410_wdt.ko:
+kernel/drivers/watchdog/davinci_wdt.ko:
+kernel/drivers/watchdog/tegra_wdt.ko:
+kernel/drivers/watchdog/bcm7038_wdt.ko:
+kernel/drivers/watchdog/renesas_wdt.ko:
+kernel/drivers/watchdog/da9063_wdt.ko:
+kernel/drivers/cpufreq/cpufreq_powersave.ko:
+kernel/drivers/cpufreq/cpufreq_userspace.ko:
+kernel/drivers/cpufreq/cpufreq_conservative.ko:
+kernel/drivers/cpufreq/highbank-cpufreq.ko:
+kernel/drivers/mmc/host/sdhci-pxav2.ko:
+kernel/drivers/leds/led-class-flash.ko:
+kernel/drivers/leds/leds-cpcap.ko:
+kernel/drivers/leds/leds-max77693.ko: kernel/drivers/leds/led-class-flash.ko
+kernel/drivers/leds/leds-max8997.ko:
+kernel/drivers/firmware/efi/efivars.ko:
+kernel/drivers/firmware/efi/efi-pstore.ko: kernel/drivers/firmware/efi/efivars.ko
+kernel/drivers/firmware/efi/capsule-loader.ko:
+kernel/drivers/crypto/allwinner/sun4i-ss/sun4i-ss.ko: kernel/lib/crypto/libdes.ko
+kernel/drivers/crypto/atmel-aes.ko:
+kernel/drivers/crypto/atmel-sha.ko:
+kernel/drivers/crypto/atmel-tdes.ko: kernel/lib/crypto/libdes.ko
+kernel/drivers/crypto/exynos-rng.ko:
+kernel/drivers/crypto/marvell/marvell-cesa.ko: kernel/lib/crypto/libdes.ko
+kernel/drivers/crypto/rockchip/rk_crypto.ko: kernel/crypto/md5.ko kernel/crypto/sha256_generic.ko kernel/lib/crypto/libsha256.ko kernel/crypto/sha1_generic.ko kernel/lib/crypto/libdes.ko
+kernel/drivers/crypto/s5p-sss.ko:
+kernel/drivers/crypto/virtio/virtio_crypto.ko:
+kernel/drivers/crypto/bcm/bcm_crypto_spu.ko: kernel/crypto/authenc.ko kernel/lib/crypto/libdes.ko
+kernel/drivers/platform/chrome/cros_ec.ko:
+kernel/drivers/platform/chrome/cros_ec_i2c.ko: kernel/drivers/platform/chrome/cros_ec.ko
+kernel/drivers/platform/chrome/cros_ec_spi.ko: kernel/drivers/platform/chrome/cros_ec.ko
+kernel/drivers/platform/chrome/cros_ec_chardev.ko:
+kernel/drivers/platform/chrome/cros_ec_lightbar.ko:
+kernel/drivers/platform/chrome/cros_ec_vbc.ko:
+kernel/drivers/platform/chrome/cros_ec_debugfs.ko:
+kernel/drivers/platform/chrome/cros_ec_sensorhub.ko:
+kernel/drivers/platform/chrome/cros_ec_sysfs.ko:
+kernel/drivers/mailbox/mailbox-sti.ko:
+kernel/drivers/remoteproc/st_remoteproc.ko:
+kernel/drivers/remoteproc/st_slim_rproc.ko:
+kernel/drivers/devfreq/event/exynos-nocp.ko:
+kernel/drivers/devfreq/event/exynos-ppmu.ko:
+kernel/drivers/devfreq/governor_simpleondemand.ko:
+kernel/drivers/devfreq/governor_passive.ko:
+kernel/drivers/devfreq/exynos-bus.ko:
+kernel/drivers/devfreq/tegra30-devfreq.ko:
+kernel/drivers/extcon/extcon-max14577.ko:
+kernel/drivers/extcon/extcon-max77693.ko:
+kernel/drivers/extcon/extcon-max8997.ko:
+kernel/drivers/memory/samsung/exynos5422-dmc.ko:
+kernel/drivers/iio/adc/aspeed_adc.ko:
+kernel/drivers/iio/adc/at91_adc.ko:
+kernel/drivers/iio/adc/at91-sama5d2_adc.ko:
+kernel/drivers/iio/adc/berlin2-adc.ko:
+kernel/drivers/iio/adc/cpcap-adc.ko:
+kernel/drivers/iio/adc/exynos_adc.ko:
+kernel/drivers/iio/adc/meson_saradc.ko:
+kernel/drivers/iio/adc/rockchip_saradc.ko:
+kernel/drivers/iio/adc/stm32-adc-core.ko:
+kernel/drivers/iio/adc/stm32-adc.ko: kernel/drivers/iio/trigger/stm32-timer-trigger.ko kernel/drivers/iio/trigger/stm32-lptimer-trigger.ko
+kernel/drivers/iio/adc/stm32-dfsdm-core.ko:
+kernel/drivers/iio/adc/stm32-dfsdm-adc.ko: kernel/drivers/iio/adc/stm32-dfsdm-core.ko kernel/drivers/iio/buffer/industrialio-hw-consumer.ko kernel/drivers/iio/trigger/stm32-timer-trigger.ko kernel/drivers/iio/trigger/stm32-lptimer-trigger.ko
+kernel/drivers/iio/adc/vf610_adc.ko:
+kernel/drivers/iio/buffer/industrialio-buffer-cb.ko:
+kernel/drivers/iio/buffer/industrialio-hw-consumer.ko:
+kernel/drivers/iio/common/cros_ec_sensors/cros_ec_sensors_core.ko:
+kernel/drivers/iio/common/cros_ec_sensors/cros_ec_sensors.ko: kernel/drivers/iio/common/cros_ec_sensors/cros_ec_sensors_core.ko
+kernel/drivers/iio/dac/stm32-dac-core.ko:
+kernel/drivers/iio/dac/stm32-dac.ko:
+kernel/drivers/iio/light/cm36651.ko:
+kernel/drivers/iio/light/cros_ec_light_prox.ko: kernel/drivers/iio/common/cros_ec_sensors/cros_ec_sensors_core.ko
+kernel/drivers/iio/trigger/stm32-lptimer-trigger.ko:
+kernel/drivers/iio/trigger/stm32-timer-trigger.ko:
+kernel/drivers/nvmem/nvmem_rockchip_efuse.ko:
+kernel/drivers/nvmem/nvmem_meson_mx_efuse.ko:
+kernel/drivers/bluetooth/hci_uart.ko: kernel/drivers/bluetooth/btbcm.ko kernel/net/bluetooth/bluetooth.ko kernel/crypto/ecdh_generic.ko kernel/crypto/ecc.ko
+kernel/drivers/bluetooth/btmrvl.ko: kernel/net/bluetooth/bluetooth.ko kernel/crypto/ecdh_generic.ko kernel/crypto/ecc.ko
+kernel/drivers/bluetooth/btmrvl_sdio.ko: kernel/drivers/bluetooth/btmrvl.ko kernel/net/bluetooth/bluetooth.ko kernel/crypto/ecdh_generic.ko kernel/crypto/ecc.ko
+kernel/drivers/bluetooth/btbcm.ko: kernel/net/bluetooth/bluetooth.ko kernel/crypto/ecdh_generic.ko kernel/crypto/ecc.ko
+kernel/drivers/rpmsg/rpmsg_core.ko:
+kernel/drivers/rpmsg/virtio_rpmsg_bus.ko: kernel/drivers/rpmsg/rpmsg_core.ko
+kernel/drivers/fsi/fsi-core.ko: kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-master-hub.ko: kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-master-aspeed.ko: kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-master-gpio.ko: kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-scom.ko: kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-sbefifo.ko: kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/drivers/fsi/fsi-occ.ko: kernel/drivers/fsi/fsi-sbefifo.ko kernel/drivers/fsi/fsi-core.ko kernel/lib/crc4.ko
+kernel/sound/soundcore.ko:
+kernel/sound/core/snd.ko: kernel/sound/soundcore.ko
+kernel/sound/core/snd-hwdep.ko: kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/core/snd-timer.ko: kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/core/snd-pcm.ko: kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/core/snd-pcm-dmaengine.ko: kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/core/snd-rawmidi.ko: kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/pci/hda/snd-hda-codec.ko: kernel/sound/hda/snd-hda-core.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/pci/hda/snd-hda-codec-generic.ko: kernel/sound/pci/hda/snd-hda-codec.ko kernel/sound/hda/snd-hda-core.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/pci/hda/snd-hda-codec-realtek.ko: kernel/sound/pci/hda/snd-hda-codec-generic.ko kernel/sound/pci/hda/snd-hda-codec.ko kernel/sound/hda/snd-hda-core.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/pci/hda/snd-hda-codec-hdmi.ko: kernel/sound/pci/hda/snd-hda-codec.ko kernel/sound/hda/snd-hda-core.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/pci/hda/snd-hda-tegra.ko: kernel/sound/pci/hda/snd-hda-codec.ko kernel/sound/hda/snd-hda-core.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/arm/snd-pxa2xx-lib.ko: kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/usb/snd-usb-audio.ko: kernel/sound/core/snd-hwdep.ko kernel/sound/usb/snd-usbmidi-lib.ko kernel/sound/core/snd-rawmidi.ko kernel/drivers/media/mc/mc.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/usb/snd-usbmidi-lib.ko: kernel/sound/core/snd-rawmidi.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/snd-soc-core.ko: kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-ak4642.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-alc5632.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-cpcap.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-cs42l51.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-cs42l51-i2c.ko: kernel/sound/soc/codecs/snd-soc-cs42l51.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-max98090.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-max98095.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-hdmi-codec.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-rl6231.ko:
+kernel/sound/soc/codecs/snd-soc-rt5631.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-rt5640.ko: kernel/sound/soc/codecs/snd-soc-rl6231.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-rt5645.ko: kernel/sound/soc/codecs/snd-soc-rl6231.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-sgtl5000.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-spdif-rx.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-spdif-tx.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-sti-sas.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-tlv320aic23.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-tlv320aic23-i2c.ko: kernel/sound/soc/codecs/snd-soc-tlv320aic23.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-ts3a227e.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm8753.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm8903.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm8904.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm8978.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm8994.ko: kernel/sound/soc/codecs/snd-soc-wm-hubs.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm9712.ko: kernel/drivers/base/regmap/regmap-ac97.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/codecs/snd-soc-wm-hubs.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/generic/snd-soc-simple-card-utils.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/generic/snd-soc-simple-card.ko: kernel/sound/soc/generic/snd-soc-simple-card-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/generic/snd-soc-audio-graph-card.ko: kernel/sound/soc/generic/snd-soc-simple-card-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-soc-atmel-pcm-pdc.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-soc-atmel-pcm-dma.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-soc-atmel_ssc_dai.ko: kernel/sound/soc/atmel/snd-soc-atmel-pcm-dma.ko kernel/sound/soc/atmel/snd-soc-atmel-pcm-pdc.ko kernel/drivers/misc/atmel-ssc.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-soc-atmel-i2s.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-atmel-soc-wm8904.ko: kernel/sound/soc/atmel/snd-soc-atmel_ssc_dai.ko kernel/sound/soc/atmel/snd-soc-atmel-pcm-dma.ko kernel/sound/soc/atmel/snd-soc-atmel-pcm-pdc.ko kernel/drivers/misc/atmel-ssc.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/atmel/snd-atmel-soc-pdmic.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/bcm/snd-soc-bcm2835-i2s.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/fsl/snd-soc-fsl-sai.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/pxa/snd-soc-pxa-ssp.ko: kernel/arch/arm/plat-pxa/ssp.ko kernel/sound/arm/snd-pxa2xx-lib.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/rockchip/snd-soc-rockchip-i2s.ko: kernel/sound/soc/rockchip/snd-soc-rockchip-pcm.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/rockchip/snd-soc-rockchip-pcm.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/rockchip/snd-soc-rockchip-spdif.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/rockchip/snd-soc-rockchip-max98090.ko: kernel/sound/soc/codecs/snd-soc-ts3a227e.ko kernel/sound/soc/codecs/snd-soc-hdmi-codec.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/rockchip/snd-soc-rockchip-rt5645.ko: kernel/sound/soc/codecs/snd-soc-rt5645.ko kernel/sound/soc/codecs/snd-soc-rl6231.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-s3c-dma.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-pcm.ko: kernel/sound/soc/samsung/snd-soc-s3c-dma.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-i2s.ko: kernel/sound/soc/samsung/snd-soc-idma.ko kernel/sound/soc/samsung/snd-soc-s3c-dma.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-idma.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-smdk-wm8994.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-snow.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-smdk-wm8994pcm.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-odroid.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/samsung/snd-soc-arndale.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/sh/snd-soc-fsi.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/sh/rcar/snd-soc-rcar.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/sti/snd-soc-sti.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/stm/snd-soc-stm32-sai-sub.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/stm/snd-soc-stm32-sai.ko:
+kernel/sound/soc/stm/snd-soc-stm32-i2s.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/sunxi/sun4i-codec.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-pcm.ko: kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-utils.ko:
+kernel/sound/soc/tegra/snd-soc-tegra20-ac97.ko: kernel/sound/soc/tegra/snd-soc-tegra-pcm.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra20-das.ko:
+kernel/sound/soc/tegra/snd-soc-tegra20-i2s.ko: kernel/sound/soc/tegra/snd-soc-tegra-pcm.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra20-spdif.ko: kernel/sound/soc/tegra/snd-soc-tegra-pcm.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra30-ahub.ko:
+kernel/sound/soc/tegra/snd-soc-tegra30-i2s.ko: kernel/sound/soc/tegra/snd-soc-tegra30-ahub.ko kernel/sound/soc/tegra/snd-soc-tegra-pcm.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-rt5640.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-wm8753.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-wm8903.ko: kernel/sound/soc/codecs/snd-soc-wm8903.ko kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-wm9712.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-trimslice.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-alc5632.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/soc/tegra/snd-soc-tegra-max98090.ko: kernel/sound/soc/tegra/snd-soc-tegra-utils.ko kernel/sound/soc/snd-soc-core.ko kernel/sound/ac97_bus.ko kernel/sound/core/snd-pcm-dmaengine.ko kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/hda/snd-hda-core.ko: kernel/sound/core/snd-pcm.ko kernel/sound/core/snd-timer.ko kernel/sound/core/snd.ko kernel/sound/soundcore.ko
+kernel/sound/ac97_bus.ko:
+kernel/net/xfrm/xfrm_algo.ko:
+kernel/net/xfrm/xfrm_ipcomp.ko: kernel/net/xfrm/xfrm_algo.ko
+kernel/net/ipv6/ah6.ko: kernel/net/xfrm/xfrm_algo.ko
+kernel/net/ipv6/esp6.ko: kernel/net/xfrm/xfrm_algo.ko
+kernel/net/ipv6/ipcomp6.ko: kernel/net/ipv6/xfrm6_tunnel.ko kernel/net/ipv6/tunnel6.ko kernel/net/xfrm/xfrm_ipcomp.ko kernel/net/xfrm/xfrm_algo.ko
+kernel/net/ipv6/xfrm6_tunnel.ko: kernel/net/ipv6/tunnel6.ko
+kernel/net/ipv6/tunnel6.ko:
+kernel/net/ipv6/mip6.ko:
+kernel/net/ipv6/ip6_tunnel.ko: kernel/net/ipv6/tunnel6.ko
+kernel/net/wireless/cfg80211.ko:
+kernel/net/dsa/dsa_core.ko:
+kernel/net/dsa/tag_brcm.ko: kernel/net/dsa/dsa_core.ko
+kernel/net/bluetooth/bluetooth.ko: kernel/crypto/ecdh_generic.ko kernel/crypto/ecc.ko
+kernel/net/mac80211/mac80211.ko: kernel/lib/crypto/libarc4.ko kernel/net/wireless/cfg80211.ko
+kernel/net/nfc/nfc.ko:
+kernel/net/nfc/nci/nci.ko: kernel/net/nfc/nfc.ko
+kernel/net/nfc/nci/nci_spi.ko: kernel/lib/crc-ccitt.ko
+kernel/net/nfc/nci/nci_uart.ko:
+kernel/net/nfc/hci/hci.ko: kernel/net/nfc/nfc.ko
+kernel/net/nfc/nfc_digital.ko: kernel/lib/crc-itu-t.ko kernel/net/nfc/nfc.ko kernel/lib/crc-ccitt.ko
+kernel/lib/crypto/libarc4.ko:
+kernel/lib/crypto/libdes.ko:
+kernel/lib/crypto/libsha256.ko:
+kernel/lib/crc-ccitt.ko:
+kernel/lib/crc-itu-t.ko:
+kernel/lib/crc4.ko:

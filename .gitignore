@@ -2,11 +2,12 @@
 .vscode/
 
 # # Kernel modules files
-# *.o
-# .tmp_versions/
+*.o
+.tmp_versions/
 
 # Build files
 build/
 
 # rootfs files
 *.ash_history
+nfsroot/tmp/
