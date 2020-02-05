@@ -1,7 +1,7 @@
 .PHONY: uboot kernel kernel_config install_host_deps  \
 	my_modules my_modules_clean                   \
 	$(MY_MODULES_NAMES) $(MY_MODULES_CLEAN_NAMES) \
-	dtb
+	dtb userapps userapps_clean
 
 ARCH=arm
 SCRIPTS_DIR=scripts
@@ -55,6 +55,9 @@ MY_MODULES_CLEAN_NAMES=	$(MY_MOD_HELLO_NAME).$(CLEAN_END) \
 			$(MY_MOD_RTC_NAME).$(CLEAN_END) \
 			$(MY_MOD_STR_NAME).$(CLEAN_END) \
 
+# user space applications
+USER_APPS_DIR=$(LEARN_LINUX_PROJ_ROOT)/user_app_test
+
 all: uboot kernel my_modules
 
 uboot:
@@ -107,7 +110,7 @@ kernel:
 
 	cp $(KERNEL_BINARIES_DIR)/.config --target-directory=$(KERNEL_BUILD_DIR)
 
-	$(MAKE) -j 8 -C $(KERNEL_SRC_DIR)             \
+	$(MAKE) -C $(KERNEL_SRC_DIR)             \
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX) \
 		ARCH=$(ARCH)                          \
 		O=$(KERNEL_BUILD_DIR)
@@ -151,6 +154,15 @@ my_modules_clean: $(MY_MODULES_CLEAN_NAMES)
 		CROSS_COMPILE=$(CROSS_COMPILER_PREFX)           \
 		ARCH=$(ARCH)                                    \
 		BUILD_DIR=$(TARGET_MOD_DIR_FOR_BUILD) clean
+
+userapps:
+	@echo "\n\n------- Build user-space drivers for test -------"
+	$(MAKE) -C $(USER_APPS_DIR)                \
+		CC_PREFX=$(CROSS_COMPILER_PREFX)   \
+		NFS=$(TARGET_NFS_ROOT_DIR)
+
+userapps_clean:
+	$(MAKE) -C $(USER_APPS_DIR) clean
 
 # Dependencies for right building wigh help different PCs
 install_host_deps:
