@@ -10,7 +10,7 @@
 #include <dt-bindings/pinctrl/omap.h>
 
 /*
- * P9 pin 23 external user led
+ * BBB: P9.23 external user led
  */
 / {
 	leds {
@@ -23,8 +23,8 @@
 };
 
 /*
- * P9 pin 17 - I2C1_SCL
- * P9 pin 18 - I2C1_SDA
+ * BBB: P9.17 - I2C1_SCL
+ * BBB: P9.18 - I2C1_SDA
  */
 &am33xx_pinmux {
 	i2c1_pins: pinmux_i2c1_pins {
@@ -35,23 +35,23 @@
 	};
 };
 
-
 /* enable i2c1 device, because we use it bus for external i2c devices */
 &i2c1 {
-	inctrl-names = "default";
+	pinctrl-names = "default";
 	pinctrl-0 = <&i2c1_pins>;
-	clock-frequency = <100000>;
+
 	status = "okay";
+	clock-frequency = <100000>;
 
 	/*
-	 * i2c slave address (from 7 to 1 bit) = 0x68
+	 * i2c slave address (from 7 to 1 bit) = 0x57
 	 * 0 bit = 0 --> write operation
 	 * 0 bit = 1 --> read operation
 	 */
-	rtc_ds3231: ds3231@68 {
-		compatible = "dallas,ds3231";
+	rtc-ds3231@57 {
+		compatible = "maxim-integrated,ds3231";
 		#address-cell = <1>;
 		#size-cell = <0>;
-		reg = <0x68>;
+		reg = <0x57>;
 	};
 };
