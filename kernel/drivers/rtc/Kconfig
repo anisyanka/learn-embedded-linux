@@ -856,6 +856,16 @@ config RTC_I2C_AND_SPI
 
 comment "SPI and I2C RTC drivers"
 
+config RTC_DRV_DS3231
+	tristate "Maxim-Integrated DS3231"
+	depends on RTC_I2C_AND_SPI
+	default m
+	help
+	  If you say Y here you get support for DS3231 into kernel.
+
+	  This driver can also be built as a module.  If so, the module
+	  will be called rtc-ds3231.
+
 config RTC_DRV_DS3232
 	tristate "Dallas/Maxim DS3232/DS3234"
 	depends on RTC_I2C_AND_SPI
