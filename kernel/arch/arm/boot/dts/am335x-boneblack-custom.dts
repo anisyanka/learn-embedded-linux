@@ -28,30 +28,33 @@
  */
 &am33xx_pinmux {
 	i2c1_pins: pinmux_i2c1_pins {
-		pinctrl-single,pins = <
-			AM33XX_IOPAD(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP | MUX_MODE2)
-			AM33XX_IOPAD(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP | MUX_MODE2)
+		pinctrl-single,pins = < /* enable receiver | pullup selected | disable pullup/down resistor */
+			AM33XX_IOPAD(AM335X_PIN_SPI0_D1, (1 << 5) | (1 << 4) | (1 << 3) | MUX_MODE2) /* sda */
+			AM33XX_IOPAD(AM335X_PIN_SPI0_CS0, (1 << 5) | (1 << 4) | (1 << 3) | MUX_MODE2) /* scl */
 		>;
 	};
 };
 
-/* enable i2c1 device, because we use it bus for external i2c devices */
+/*
+ * Enable i2c1 device, because we use it bus for external i2c devices
+ */
 &i2c1 {
+	status = "okay";
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c1_pins>;
 
-	status = "okay";
 	clock-frequency = <100000>;
 
-	/*
-	 * i2c slave address (from 7 to 1 bit) = 0x57
-	 * 0 bit = 0 --> write operation
-	 * 0 bit = 1 --> read operation
-	 */
-	rtc-ds3231@57 {
-		compatible = "maxim-integrated,ds3231";
-		#address-cell = <1>;
-		#size-cell = <0>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	my-rtc-ds3231@68 {
+		compatible = "my-custom,my-ds3231";
+		reg = <0x68>;
+	};
+
+	my-eeprom-at24c32@57 {
+		compatible = "my-custom,my-at24c32";
 		reg = <0x57>;
 	};
 };
