@@ -18,16 +18,25 @@
 #include <linux/delay.h>
 
 /* offsets into register area */
-#define REG_OFFSET_SEC		0 /* 00-59 */
-#define REG_OFFSET_MIN		1 /* 00-59 */
-#define REG_OFFSET_HOUR		2 /* 1-12 or 00-23 */
-#define REG_OFFSET_WEEK_DAY	3 /* 1-7; 1 equals Sunday and so on */
-#define REG_OFFSET_DATE		4 /* 01-31 */
-#define REG_OFFSET_MONTH	5 /* 01-12 */
-#define REG_OFFSET_YEAR		6 /* 00-99 */
+#define REG_OFFSET_SEC			0 /* 00-59 */
+#define REG_OFFSET_MIN			1 /* 00-59 */
+#define REG_OFFSET_HOUR			2 /* 1-12 or 00-23 */
+#define REG_OFFSET_WEEK_DAY		3 /* 1-7; 1 equals Sunday and so on */
+#define REG_OFFSET_DATE			4 /* 01-31 */
+#define REG_OFFSET_MONTH		5 /* 01-12 */
+#define REG_OFFSET_YEAR			6 /* 00-99 */
 
-/* count of register to set ot read time data */
-#define REG_CNT_FOR_TIME 	7
+#define REG_OFFSET_ALARM_1_SEC		0 /* 00-59 */
+#define REG_OFFSET_ALARM_1_MIN		1 /* 00-59 */
+#define REG_OFFSET_ALARM_1_HOUR		2 /* 1-12 or 00-23 */
+#define REG_OFFSET_ALARM_1_WEEK_DAY	3 /* 1-7; 1 equals Sunday and so on */
+#define REG_OFFSET_ALARM_1_DATE		3 /* 01-31 */
+
+/* count of register to set or read time data */
+#define REG_CNT_FOR_TIME	7
+
+/* count of register to set or read alarm data */
+#define REG_CNT_FOR_ALARM	4
 
 /* register addresses */
 #define REG_ADDR_SEC		0x00
@@ -47,8 +56,8 @@
 #define REG_ADDR_ALARM_1_SEC	0x07
 #define REG_ADDR_ALARM_1_MIN	0x08
 #define REG_ADDR_ALARM_1_HOUR	0x09
-#define REG_ADDR_ALARM_1_DAY	0x0a
-#define REG_ADDR_ALARM_1_DATE	0x0a
+#define REG_ADDR_ALARM_1_DAY	0x0a /* day/date depends on DY/DT bit into this reg */
+#define REG_ADDR_ALARM_1_DATE	0x0a /* day/date depends on DY/DT bit into this reg */
 
 /* alarm 2 register addresses */
 #define REG_ADDR_ALARM_2_MIN	0x0b
@@ -56,7 +65,7 @@
 #define REG_ADDR_ALARM_2_DAY	0x0d
 #define REG_ADDR_ALARM_2_DATE	0x0d
 
-/* defines for bits of status register */
+/* DEFINITIONS FOR BITS OF STATUS REGISTER: */
 /*
  * This bit indicates the device is busy executing TCXO functions.
  * It goes to logic 1 when the conversion signal to the temperature
@@ -65,7 +74,7 @@
  */
 #define STATUS_BSY_BIT ((unsigned char)(1 << 2))
 
-/* defines for bits of control register */
+/* DEFINITIONS FOR BITS OF CONTROL REGISTER: */
 /*
  * When set to logic 0, the oscillator is started.
  * Set automatically, when ds3231 is powered of Vcc.
@@ -91,11 +100,72 @@
  */
 struct ds3231_state {
 	struct rtc_device *rtc;
+	struct rtc_wkalrm alarm_time;
 #define HOUR_REG_FORMAT_BIT_POS		6
 #define HOUR_REG_AM_PM_BIT_POS		5
-	unsigned hour_format:1; /* 1 is 12 hours or 0 is 24 hour */
-	unsigned am_pm_bit:1; /* 1=PM in 12 hour mode; in 24 hour mode = 20-23 hour */
+	unsigned hour_format_bit:1; /* 1 is 12 hours or 0 is 24 hour */
+	unsigned am_pm_bit:1; /* 1=PM in 12 hour mode; 0: in 24 hour mode = 20-23 hour */
+#define ALARM_REG_DY_DT_BIT_POS		6
+	unsigned alarm_dy_dt_bit:1; /* 1=alarm will be the result of a match with day of the week. 0=date of the month */
+#define ALARM_A1Mx_BIT_POS		7
+	unsigned a1m1:1;
+	unsigned a1m2:1;
+	unsigned a1m3:1;
+	unsigned a1m4:1;
 };
+
+#define ALARM_ONCE_PER_SEC_EN(__ds3231_data__) \
+{ \
+	do { \
+		__ds3231_data__->a1m1 = 1; \
+		__ds3231_data__->a1m2 = 1; \
+		__ds3231_data__->a1m3 = 1; \
+		__ds3231_data__->a1m4 = 1; \
+	} while (0); \
+}
+
+#define ALARM_WHEN_SEC_MATCH_EN(__ds3231_data__) \
+{ \
+	do { \
+		__ds3231_data__->a1m1 = 0; \
+		__ds3231_data__->a1m2 = 1; \
+		__ds3231_data__->a1m3 = 1; \
+		__ds3231_data__->a1m4 = 1; \
+	} while (0); \
+}
+
+#define ALARM_WHEN_SEC_AND_MIN_MATCH_EN(__ds3231_data__) \
+{ \
+	do { \
+		__ds3231_data__->a1m1 = 0; \
+		__ds3231_data__->a1m2 = 0; \
+		__ds3231_data__->a1m3 = 1; \
+		__ds3231_data__->a1m4 = 1; \
+	} while (0); \
+}
+
+#define ALARM_WHEN_SEC_AND_MIN_AND_HOUR_MATCH_EN(__ds3231_data__) \
+{ \
+	do { \
+		__ds3231_data__->a1m1 = 0; \
+		__ds3231_data__->a1m2 = 0; \
+		__ds3231_data__->a1m3 = 0; \
+		__ds3231_data__->a1m4 = 1; \
+	} while (0); \
+}
+
+#define ALARM_WHEN_WHOLE_MATCH_EN(__ds3231_data__) \
+{ \
+	do { \
+		__ds3231_data__->a1m1 = 0; \
+		__ds3231_data__->a1m2 = 0; \
+		__ds3231_data__->a1m3 = 0; \
+		__ds3231_data__->a1m4 = 0; \
+	} while (0); \
+}
+
+/* return 1 if true */
+#define IS_DATE_FORMAT_12_HOUR(__ds3231_data__) (__ds3231_data__->hour_format_bit)
 
 static struct i2c_driver ds3231_driver;
 static struct ds3231_state ds3231_data;
@@ -140,7 +210,7 @@ static int read_reg(struct i2c_client *client, unsigned char base_reg,
 	};
 
 	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
-		dev_info(&client->dev, "%s: reg reg 0x%x error\n",
+		dev_info(&client->dev, "%s: i2c read reg 0x%x error\n",
 				__func__, base_reg);
 		return -EIO;
 	}
@@ -167,9 +237,18 @@ static int ds3231_check_bsy_bit(struct i2c_client *client)
 static int ds3231_force_tcxo(struct i2c_client *client)
 {
 	unsigned char control = 0;
+	unsigned int while_iterator = 0;
 
-	while (ds3231_check_bsy_bit(client))
+	while (ds3231_check_bsy_bit(client)) {
+		/* check bsy more than 1 second meand hard error into rtc chip */
+		if (while_iterator == 50) {
+			dev_info(&client->dev, "%s: hard error into ds3231 chip\n", __func__);
+			return -EIO;
+		}
+
 		msleep(20);
+		++while_iterator;
+	}
 
 	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
 		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
@@ -190,35 +269,19 @@ static int ds3231_force_tcxo(struct i2c_client *client)
 	return 0;
 }
 
-static int ds3231_init(struct i2c_client *client)
-{
-	unsigned char control = 0;
-
-	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
-		return -EIO;
-	}
-
-	/* check that oscillator is running */
-	if (control & CNTRL_EOSC_BIT) {
-		dev_info(&client->dev, "%s: error: oscillator stopped\n", __func__);
-		return -EIO;
-	}
-
-	/* need to adjust oscillator with environmental temperature */
-	if (ds3231_force_tcxo(client)) {
-		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
-		return -EIO;
-	}
-
-	return 0;
-}
-
 static int ds3231_rtc_read_time(struct device *dev, struct rtc_time *tm)
 {
+	unsigned int pm = 0;
 	unsigned char buf_addr[] = { REG_ADDR_SEC };
 	unsigned char buf[REG_CNT_FOR_TIME] = { 0 };
 	struct i2c_msg msgs[2] = { { 0 }, { 0 } };
+	struct ds3231_state *driver_data = NULL;
+
+	driver_data = i2c_get_clientdata(to_i2c_client(dev));
+	if (!driver_data) {
+		dev_info(dev, "%s: i2c_get_clientdata: error\n", __func__);
+		return -EIO;
+	}
 
 	/* setup read ptr */
 	msgs[0].addr = (to_i2c_client(dev))->addr;
@@ -237,13 +300,29 @@ static int ds3231_rtc_read_time(struct device *dev, struct rtc_time *tm)
 		return -EIO;
 	}
 
+	/* check if PM bit set */
+	if (buf[REG_OFFSET_HOUR] & (1 << HOUR_REG_AM_PM_BIT_POS))
+		pm = 1;
+
 	tm->tm_sec = bcd2bin(buf[REG_OFFSET_SEC] & 0x7f);
 	tm->tm_min = bcd2bin(buf[REG_OFFSET_MIN] & 0x7f);
-	tm->tm_hour = bcd2bin(buf[REG_OFFSET_HOUR] & 0x3f);
+	tm->tm_hour = bcd2bin(buf[REG_OFFSET_HOUR] & \
+			(IS_DATE_FORMAT_12_HOUR(driver_data) ? 0x1f : 0x3f));
 	tm->tm_wday = bcd2bin(buf[REG_OFFSET_WEEK_DAY] & 0x07) -1; /* tm_wday:0-6, but rtc:1-7 */
 	tm->tm_mday = bcd2bin(buf[REG_OFFSET_DATE] & 0x3f);
-	tm->tm_mon = bcd2bin(buf[REG_OFFSET_MONTH] & 0x1f) - 1; /* tm_mon:0-1, but rtc:1-12 */
+	tm->tm_mon = bcd2bin(buf[REG_OFFSET_MONTH] & 0x1f) - 1; /* tm_mon:0-11, but rtc chip is 1-12 */
 	tm->tm_year = bcd2bin(buf[REG_OFFSET_YEAR] & 0xff);
+
+	if (IS_DATE_FORMAT_12_HOUR(driver_data)) {
+		/*
+		 * PM bit = 1 in 12-hour mode,
+		 * but Linux rtc structure has 0-23 hour format
+		 */
+		if (pm) {
+			tm->tm_hour += 12;
+			driver_data->am_pm_bit = 1;
+		}
+	}
 
 	dev_info(dev, "%s: secs=%d, mins=%d, hours=%d, "
 		"date=%d, month=%d, year=%d, weekday=%d\n",
@@ -256,8 +335,8 @@ static int ds3231_rtc_read_time(struct device *dev, struct rtc_time *tm)
 
 static int ds3231_rtc_set_time(struct device *dev, struct rtc_time *tm)
 {
-	unsigned char rdata[REG_CNT_FOR_TIME + 1] = { REG_ADDR_SEC };
-	unsigned char *buf = rdata + 1;
+	unsigned char set_data[REG_CNT_FOR_TIME + 1] = { REG_ADDR_SEC };
+	unsigned char *buf = set_data + 1;
 	struct i2c_msg msg = { 0 };
 	struct ds3231_state *driver_data = NULL;
 
@@ -267,19 +346,32 @@ static int ds3231_rtc_set_time(struct device *dev, struct rtc_time *tm)
 		return -EIO;
 	}
 
+	driver_data->am_pm_bit = 0;
+	if (IS_DATE_FORMAT_12_HOUR(driver_data)) {
+		if (tm->tm_hour >= 12) {
+			tm->tm_hour -= 12;
+			driver_data->am_pm_bit = 1;
+		}
+	}
+
 	buf[REG_OFFSET_SEC] = bin2bcd(tm->tm_sec) & 0x7f;
 	buf[REG_OFFSET_MIN] = bin2bcd(tm->tm_min) & 0x7f;
-	buf[REG_OFFSET_HOUR] = (bin2bcd(tm->tm_hour) & 0x3f) | \
-		(unsigned char)(driver_data->hour_format << HOUR_REG_FORMAT_BIT_POS) | \
-		(unsigned char)(driver_data->am_pm_bit << HOUR_REG_AM_PM_BIT_POS);
-	buf[REG_OFFSET_WEEK_DAY] = (bin2bcd(tm->tm_wday) + 1) & 0x07;
+	buf[REG_OFFSET_HOUR] = (bin2bcd(tm->tm_hour) & (IS_DATE_FORMAT_12_HOUR(driver_data) ? 0x1f : 0x3f)) | \
+			((unsigned char)(driver_data->hour_format_bit << HOUR_REG_FORMAT_BIT_POS)) | \
+			((unsigned char)(driver_data->am_pm_bit << HOUR_REG_AM_PM_BIT_POS));
+	buf[REG_OFFSET_WEEK_DAY] = (bin2bcd(tm->tm_wday) + 1) & 0x07; /* tm_wday:0-6, but rtc chip is 1-7 */
 	buf[REG_OFFSET_DATE] = bin2bcd(tm->tm_mday) & 0x3f;
-	buf[REG_OFFSET_MONTH] = (bin2bcd(tm->tm_mon) + 1) & 0x1f;
+	buf[REG_OFFSET_MONTH] = (bin2bcd(tm->tm_mon) + 1) & 0x1f; /* tm_mon:0-11, but rtc chip is 1-12 */
 	buf[REG_OFFSET_YEAR] = bin2bcd(tm->tm_year) & 0xff;
 
 	msg.addr = (to_i2c_client(dev))->addr;
-	msg.len = sizeof(rdata)/sizeof(rdata[0]);
-	msg.buf = rdata;
+	msg.len = sizeof(set_data)/sizeof(set_data[0]);
+	msg.buf = set_data;
+
+	if (i2c_transfer((to_i2c_client(dev))->adapter, &msg, 1) != 1) {
+		dev_info(dev, "%s: i2c write error\n", __func__);
+		return -EIO;
+	}
 
 	dev_info(dev, "%s: secs=%d, mins=%d, hours=%d, "
 		"date=%d, month=%d, year=%d, weekday=%d\n",
@@ -287,8 +379,137 @@ static int ds3231_rtc_set_time(struct device *dev, struct rtc_time *tm)
 		tm->tm_sec, tm->tm_min, tm->tm_hour,
 		tm->tm_mday, tm->tm_mon, tm->tm_year + 1900, tm->tm_wday);
 
+	return 0;
+}
+
+static int ds3231_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+{
+	unsigned int pm = 0;
+	unsigned char buf_addr[] = { REG_ADDR_ALARM_1_SEC };
+	unsigned char buf[REG_CNT_FOR_ALARM] = { 0 };
+	struct i2c_msg msgs[2] = { { 0 }, { 0 } };
+	struct ds3231_state *driver_data = NULL;
+
+	driver_data = i2c_get_clientdata(to_i2c_client(dev));
+	if (!driver_data) {
+		dev_info(dev, "%s: i2c_get_clientdata: error\n", __func__);
+		return -EIO;
+	}
+
+	/* setup read ptr */
+	msgs[0].addr = (to_i2c_client(dev))->addr;
+	msgs[0].len = sizeof(buf_addr)/sizeof(buf_addr[0]);
+	msgs[0].buf = buf_addr;
+
+	/* read date */
+	msgs[1].addr = (to_i2c_client(dev))->addr;
+	msgs[1].flags = I2C_M_RD;
+	msgs[1].len = REG_CNT_FOR_ALARM;
+	msgs[1].buf = buf;
+
+	/* read date registers */
+	if (i2c_transfer((to_i2c_client(dev))->adapter, &msgs[0], 2) != 2) {
+		dev_info(dev, "%s: i2c read error\n", __func__);
+		return -EIO;
+	}
+
+	/* check if PM bit set */
+	if (buf[REG_OFFSET_HOUR] & (1 << HOUR_REG_AM_PM_BIT_POS))
+		pm = 1;
+
+	alarm->time.tm_sec = bcd2bin(buf[REG_OFFSET_ALARM_1_SEC] & 0x7f);
+	alarm->time.tm_min = bcd2bin(buf[REG_OFFSET_ALARM_1_MIN] & 0x7f);
+	alarm->time.tm_hour = bcd2bin(buf[REG_OFFSET_ALARM_1_HOUR] & \
+			(IS_DATE_FORMAT_12_HOUR(driver_data) ? 0x1f : 0x3f));
+
+	if (IS_DATE_FORMAT_12_HOUR(driver_data)) {
+		/*
+		 * PM bit = 1 in 12-hour mode,
+		 * but Linux rtc structure has 0-23 hour format
+		 */
+		if (pm) {
+			alarm->time.tm_hour += 12;
+			driver_data->am_pm_bit = 1;
+		}
+	}
+
+	if (driver_data->alarm_dy_dt_bit)
+		alarm->time.tm_wday = bcd2bin(buf[REG_OFFSET_ALARM_1_WEEK_DAY] & 0x07) - 1;
+	else
+		alarm->time.tm_mday = bcd2bin(buf[REG_OFFSET_ALARM_1_DATE] & 0x3f);
+
+	dev_info(dev, "%s: alarm: secs=%d, mins=%d, hours=%d, "
+		"date=%d, weekday=%d\n",
+		__func__,
+		alarm->time.tm_sec, alarm->time.tm_min, alarm->time.tm_hour,
+		alarm->time.tm_mday, alarm->time.tm_wday);
+
+	/* save alarm time to local alarm structure */
+	driver_data->alarm_time.time.tm_sec = alarm->time.tm_sec;
+	driver_data->alarm_time.time.tm_min = alarm->time.tm_min;
+	driver_data->alarm_time.time.tm_hour = alarm->time.tm_hour;
+	driver_data->alarm_time.time.tm_wday = alarm->time.tm_wday;
+	driver_data->alarm_time.time.tm_mday = alarm->time.tm_mday;
+
+	return 0;
+}
+
+static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+{
+	unsigned char set_data[REG_CNT_FOR_ALARM + 1] = { REG_ADDR_ALARM_1_SEC };
+	unsigned char *buf = set_data + 1;
+	struct i2c_msg msg = { 0 };
+	struct ds3231_state *driver_data = NULL;
+
+	driver_data = i2c_get_clientdata(to_i2c_client(dev));
+	if (!driver_data) {
+		dev_info(dev, "%s: i2c_get_clientdata: error\n", __func__);
+		return -EIO;
+	}
+
+	/*
+	 * ADD WRITE TO CONTROL REGISTER HERE
+	 */
+
+	/* save alarm time to local alarm structure */
+	driver_data->alarm_time.time.tm_sec = alarm->time.tm_sec;
+	driver_data->alarm_time.time.tm_min = alarm->time.tm_min;
+	driver_data->alarm_time.time.tm_hour = alarm->time.tm_hour;
+	driver_data->alarm_time.time.tm_wday = alarm->time.tm_wday;
+	driver_data->alarm_time.time.tm_mday = alarm->time.tm_mday;
+
+	driver_data->am_pm_bit = 0;
+	if (IS_DATE_FORMAT_12_HOUR(driver_data)) {
+		if (alarm->time.tm_hour >= 12) {
+			alarm->time.tm_hour -= 12;
+			driver_data->am_pm_bit = 1;
+		}
+	}
+
+	buf[REG_OFFSET_ALARM_1_SEC] = (bin2bcd(alarm->time.tm_sec) & 0x7f) | \
+			(unsigned char)(driver_data->a1m1 << ALARM_A1Mx_BIT_POS);
+	buf[REG_OFFSET_ALARM_1_MIN] = (bin2bcd(alarm->time.tm_min) & 0x7f) | \
+			(unsigned char)(driver_data->a1m2 << ALARM_A1Mx_BIT_POS);
+	buf[REG_OFFSET_ALARM_1_HOUR] = (bin2bcd(alarm->time.tm_hour) & \
+				(IS_DATE_FORMAT_12_HOUR(driver_data) ? 0x1f : 0x3f)) | \
+			((unsigned char)(driver_data->a1m3 << ALARM_A1Mx_BIT_POS)) | \
+			((unsigned char)(driver_data->hour_format_bit << HOUR_REG_FORMAT_BIT_POS)) | \
+			((unsigned char)(driver_data->am_pm_bit << HOUR_REG_AM_PM_BIT_POS));
+	if (driver_data->alarm_dy_dt_bit)
+		buf[REG_OFFSET_ALARM_1_WEEK_DAY] = (bin2bcd(alarm->time.tm_wday) & 0x07) | \
+				((unsigned char)(driver_data->a1m4 << ALARM_A1Mx_BIT_POS)) | \
+				((unsigned char)(driver_data->alarm_dy_dt_bit << ALARM_REG_DY_DT_BIT_POS));
+	else
+		buf[REG_OFFSET_ALARM_1_DATE] = (bin2bcd(alarm->time.tm_mday) & 0x3f) | \
+				((unsigned char)(driver_data->a1m4 << ALARM_A1Mx_BIT_POS)) | \
+				((unsigned char)(driver_data->alarm_dy_dt_bit << ALARM_REG_DY_DT_BIT_POS));
+
+	msg.addr = (to_i2c_client(dev))->addr;
+	msg.len = sizeof(set_data)/sizeof(set_data[0]);
+	msg.buf = set_data;
+
 	if (i2c_transfer((to_i2c_client(dev))->adapter, &msg, 1) != 1) {
-		dev_info(dev, "%s: write error\n", __func__);
+		dev_info(dev, "%s: i2c write error\n", __func__);
 		return -EIO;
 	}
 
@@ -298,9 +519,42 @@ static int ds3231_rtc_set_time(struct device *dev, struct rtc_time *tm)
 static const struct rtc_class_ops ds3231_rtc_ops = {
 	.read_time	= ds3231_rtc_read_time,
 	.set_time	= ds3231_rtc_set_time,
-	.read_alarm	= NULL,
-	.set_alarm	= NULL,
+	.read_alarm	= ds3231_read_alarm,
+	.set_alarm	= ds3231_set_alarm,
 };
+
+static int ds3231_init(struct i2c_client *client)
+{
+	unsigned char control = 0;
+	struct ds3231_state *driver_data;
+
+	driver_data = i2c_get_clientdata(client);
+	if (!driver_data) {
+		dev_info(&client->dev, "%s: i2c_get_clientdata: error\n", __func__);
+		return -EIO;
+	}
+
+	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
+		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
+		return -EIO;
+	}
+
+	/* check that oscillator is running */
+	if (control & CNTRL_EOSC_BIT) {
+		dev_info(&client->dev, "%s: error: oscillator stopped\n", __func__);
+		return -EIO;
+	}
+
+	/* need to adjust oscillator with environmental temperature */
+	if (ds3231_force_tcxo(client)) {
+		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
+		return -EIO;
+	}
+
+	ALARM_ONCE_PER_SEC_EN(driver_data);
+
+	return 0;
+}
 
 static int ds3231_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
@@ -310,6 +564,8 @@ static int ds3231_probe(struct i2c_client *client,
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
 		return -ENODEV;
 
+	i2c_set_clientdata(client, driver_data);
+
 	if (ds3231_init(client) < 0)
 		return -ENODEV;
 
@@ -318,8 +574,6 @@ static int ds3231_probe(struct i2c_client *client,
 
 	if (IS_ERR(driver_data->rtc))
 		return PTR_ERR(driver_data->rtc);
-
-	i2c_set_clientdata(client, driver_data);
 
 	return 0;
 }
