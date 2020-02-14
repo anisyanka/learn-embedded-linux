@@ -74,6 +74,19 @@
  */
 #define STATUS_BSY_BIT ((unsigned char)(1 << 2))
 
+/*
+ * A logic 1 in this bit indicates that the oscillator either
+ * is stopped or was stopped for some period
+ */
+#define STATUS_OSF_BIT ((unsigned char)(1 << 7))
+
+/*
+ * This bit controls the status of the 32kHz pin. When set to logic 1, the
+ * 32kHz pin is enabled and outputs a 32.768kHz square wave signal.
+ */
+#define STATUS_EN32kHz_BIT ((unsigned char)(1 << 3))
+
+
 /* DEFINITIONS FOR BITS OF CONTROL REGISTER: */
 /*
  * When set to logic 0, the oscillator is started.
@@ -96,17 +109,83 @@
 #define CNTRL_CONV_BIT ((unsigned char)(1 << 5))
 
 /*
+ * Rate Select bits for wave output mode
+ */
+#define CNTRL_RS2_BIT ((unsigned char)(1 << 4))
+#define CNTRL_RS1_BIT ((unsigned char)(1 << 3))
+
+#define SET_1_HZ(__val__) \
+{ \
+	do { \
+		__val__ &= ~(CNTRL_RS2_BIT); \
+		__val__ &= ~(CNTRL_RS1_BIT); \
+	} while (0); \
+}
+
+#define SET_1024_HZ(__val__) \
+{ \
+	do { \
+		__val__ &= ~(CNTRL_RS2_BIT); \
+		__val__ &= ~(CNTRL_RS1_BIT); \
+		__val__ |= CNTRL_RS1_BIT; \
+	} while (0); \
+}
+
+#define SET_4096_HZ(__val__) \
+{ \
+	do { \
+		__val__ &= ~(CNTRL_RS2_BIT); \
+		__val__ &= ~(CNTRL_RS1_BIT); \
+		__val__ |= CNTRL_RS2_BIT; \
+	} while (0); \
+}
+
+#define SET_8192_HZ(__val__) \
+{ \
+	do { \
+		__val__ |= CNTRL_RS2_BIT; \
+		__val__ |= CNTRL_RS1_BIT; \
+	} while (0); \
+}
+
+#define SET_RS_DEFAULT_HZ(__val__) SET_1_HZ(__val__)
+
+/*
+ * This bit controls the INT/SQW signal.
+ * When the INTCN bit is set to logic 0, a square wave is output on the INT/SQW pin.
+ */
+#define CNTRL_INTCN_BIT ((unsigned char)(1 << 2))
+
+/*
+ * When set to logic 1, this bit permits the alarm 2 flag (A2F) bit in the
+ * status register to assert INT/SQW (when INTCN = 1).
+ * 1=enable interrupts from ALARM 2 matching to PIN
+ */
+#define CNTRL_A2IE_BIT ((unsigned char)(1 << 1))
+
+/*
+ * When set to logic 1, this bit permits the alarm 1 flag (A1F) bit in the
+ * status register to assert INT/SQW (when INTCN = 1).
+ * 1=enable interrupts from ALARM 1 matching to PIN
+ */
+#define CNTRL_A1IE_BIT ((unsigned char)(1 << 0))
+
+/*
  * Internal struct for collect all device driver data
  */
 struct ds3231_state {
 	struct rtc_device *rtc;
 	struct rtc_wkalrm alarm_time;
+
 #define HOUR_REG_FORMAT_BIT_POS		6
-#define HOUR_REG_AM_PM_BIT_POS		5
 	unsigned hour_format_bit:1; /* 1 is 12 hours or 0 is 24 hour */
+
+#define HOUR_REG_AM_PM_BIT_POS		5
 	unsigned am_pm_bit:1; /* 1=PM in 12 hour mode; 0: in 24 hour mode = 20-23 hour */
+
 #define ALARM_REG_DY_DT_BIT_POS		6
 	unsigned alarm_dy_dt_bit:1; /* 1=alarm will be the result of a match with day of the week. 0=date of the month */
+
 #define ALARM_A1Mx_BIT_POS		7
 	unsigned a1m1:1;
 	unsigned a1m2:1;
@@ -114,7 +193,13 @@ struct ds3231_state {
 	unsigned a1m4:1;
 };
 
-#define ALARM_ONCE_PER_SEC_EN(__ds3231_data__) \
+#define HOURS_FORMAT_12(__ds3231_data__) __ds3231_data__->hour_format_bit = 1
+#define HOURS_FORMAT_24(__ds3231_data__) __ds3231_data__->hour_format_bit = 0
+
+#define ALARM_RESULT_OF_DAY_OF_WEEK(__ds3231_data__) __ds3231_data__->alarm_dy_dt_bit = 1
+#define ALARM_RESULT_OF_DAY_OF_MONTH(__ds3231_data__) __ds3231_data__->alarm_dy_dt_bit = 0
+
+#define ALARM_ONCE_PER_SEC(__ds3231_data__) \
 { \
 	do { \
 		__ds3231_data__->a1m1 = 1; \
@@ -124,7 +209,7 @@ struct ds3231_state {
 	} while (0); \
 }
 
-#define ALARM_WHEN_SEC_MATCH_EN(__ds3231_data__) \
+#define ALARM_WHEN_SEC_MATCH(__ds3231_data__) \
 { \
 	do { \
 		__ds3231_data__->a1m1 = 0; \
@@ -134,7 +219,7 @@ struct ds3231_state {
 	} while (0); \
 }
 
-#define ALARM_WHEN_SEC_AND_MIN_MATCH_EN(__ds3231_data__) \
+#define ALARM_WHEN_SEC_AND_MIN_MATCH(__ds3231_data__) \
 { \
 	do { \
 		__ds3231_data__->a1m1 = 0; \
@@ -144,7 +229,7 @@ struct ds3231_state {
 	} while (0); \
 }
 
-#define ALARM_WHEN_SEC_AND_MIN_AND_HOUR_MATCH_EN(__ds3231_data__) \
+#define ALARM_WHEN_SEC_AND_MIN_AND_HOUR_MATCH(__ds3231_data__) \
 { \
 	do { \
 		__ds3231_data__->a1m1 = 0; \
@@ -154,7 +239,7 @@ struct ds3231_state {
 	} while (0); \
 }
 
-#define ALARM_WHEN_WHOLE_MATCH_EN(__ds3231_data__) \
+#define ALARM_WHEN_WHOLE_MATCH(__ds3231_data__) \
 { \
 	do { \
 		__ds3231_data__->a1m1 = 0; \
@@ -214,57 +299,6 @@ static int read_reg(struct i2c_client *client, unsigned char base_reg,
 				__func__, base_reg);
 		return -EIO;
 	}
-
-	return 0;
-}
-
-/* 1=busy; */
-static int ds3231_check_bsy_bit(struct i2c_client *client)
-{
-	unsigned char status = 0;
-
-	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
-		return -EIO;
-	}
-
-	if (status & STATUS_BSY_BIT)
-		return 1;
-
-	return 0;
-}
-
-static int ds3231_force_tcxo(struct i2c_client *client)
-{
-	unsigned char control = 0;
-	unsigned int while_iterator = 0;
-
-	while (ds3231_check_bsy_bit(client)) {
-		/* check bsy more than 1 second meand hard error into rtc chip */
-		if (while_iterator == 50) {
-			dev_info(&client->dev, "%s: hard error into ds3231 chip\n", __func__);
-			return -EIO;
-		}
-
-		msleep(20);
-		++while_iterator;
-	}
-
-	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
-		return -EIO;
-	}
-
-	/* force temprature sensor bit enable */
-	control |= CNTRL_CONV_BIT;
-
-	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
-		dev_info(&client->dev, "%s: can't set CNTRL_CONV_BIT\n", __func__);
-		return -EIO;
-	}
-
-	/* wait while tcxo operation finished */
-	msleep(20);
 
 	return 0;
 }
@@ -523,9 +557,66 @@ static const struct rtc_class_ops ds3231_rtc_ops = {
 	.set_alarm	= ds3231_set_alarm,
 };
 
+/* 1=busy; */
+static int ds3231_check_bsy_bit(struct i2c_client *client)
+{
+	unsigned char status = 0;
+
+	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
+		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
+		return -EIO;
+	}
+
+	if (status & STATUS_BSY_BIT)
+		return 1;
+
+	return 0;
+}
+
+static int ds3231_force_tcxo_set_bit(struct i2c_client *client, unsigned char *control)
+{
+	unsigned int while_iterator = 0;
+
+	while (ds3231_check_bsy_bit(client)) {
+		/* bsy more than 1 second means hard error into rtc chip */
+		if (while_iterator == 50) {
+			dev_info(&client->dev, "%s: hard error into ds3231 chip\n", __func__);
+			return -EIO;
+		}
+
+		msleep(20);
+		++while_iterator;
+	}
+
+	/* force temprature sensor bit enable */
+	*control |= CNTRL_CONV_BIT;
+
+	return 0;
+}
+
+/* returns control register value or error */
+static int ds3231_check_osc_reset_osf_bit(struct i2c_client *client,
+		unsigned char *control, unsigned char *status)
+{
+	/* check in control that oscillator is running */
+	if (*control & CNTRL_EOSC_BIT) {
+		dev_info(&client->dev, "%s: control error: oscillator stopped\n", __func__);
+		return -EIO;
+	}
+
+	/* check in status that oscillator is running */
+	if (*status & STATUS_OSF_BIT) {
+		/* This bit remains at logic 1 until written to logic 0 */
+		(*status) &= ~(STATUS_OSF_BIT); /* reset OSF bit */
+	}
+
+	return 0;
+}
+
 static int ds3231_init(struct i2c_client *client)
 {
 	unsigned char control = 0;
+	unsigned char status = 0;
 	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(client);
@@ -539,19 +630,84 @@ static int ds3231_init(struct i2c_client *client)
 		return -EIO;
 	}
 
-	/* check that oscillator is running */
-	if (control & CNTRL_EOSC_BIT) {
-		dev_info(&client->dev, "%s: error: oscillator stopped\n", __func__);
+	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
+		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
+		return -EIO;
+	}
+
+	if (ds3231_check_osc_reset_osf_bit(client, &control, &status) < 0) {
+		dev_info(&client->dev, "%s: ds3231_check_osc_reset_osf_bit failed \n", __func__);
 		return -EIO;
 	}
 
 	/* need to adjust oscillator with environmental temperature */
-	if (ds3231_force_tcxo(client)) {
+	if (ds3231_force_tcxo_set_bit(client, &control)) {
 		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
 		return -EIO;
 	}
 
-	ALARM_ONCE_PER_SEC_EN(driver_data);
+	/* set default driver data */
+	HOURS_FORMAT_24(driver_data);
+	ALARM_RESULT_OF_DAY_OF_MONTH(driver_data);
+	ALARM_WHEN_WHOLE_MATCH(driver_data);
+
+#ifdef CONFIG_RTC_DRV_DS3231_FORMAT_12
+	HOURS_FORMAT_12(driver_data);
+#endif
+
+	status &= ~(STATUS_EN32kHz_BIT); /* disable 32kHz output */
+
+#ifdef CONFIG_RTC_DRV_DS3231_32kHZ_OUTPUT_EN
+	status  |= STATUS_EN32kHz_BIT;
+#endif
+
+	control &= ~(CNTRL_BBSQW_BIT); /* disable wave output */
+	control &= ~(CNTRL_INTCN_BIT); /* disable interrupts */
+	control &= ~(CNTRL_A2IE_BIT); /* disable alarm 2 interrupt */
+	control &= ~(CNTRL_A1IE_BIT); /* disable alarm 1 interrupt */
+
+	/*
+	 * Apply default value
+	 * Code below will rewrite this values if
+	 * corresponding definition is defined
+	 */
+	SET_RS_DEFAULT_HZ(control);
+
+#ifdef CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
+	control |= CNTRL_BBSQW_BIT;
+
+# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1_HZ
+	SET_1_HZ(control);
+# endif
+
+# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1024_HZ
+	SET_1024_HZ(control);
+# endif
+
+# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_4096_HZ
+	SET_4096_HZ(control);
+# endif
+
+# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_8192_HZ
+	SET_8192_HZ(control);
+# endif
+#endif  // CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
+
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+#endif
+
+	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
+		dev_info(&client->dev, "%s: can't set control register\n", __func__);
+		return -EIO;
+	}
+
+	if (write_reg(client, REG_ADDR_STATUS, status) < 0) {
+		dev_info(&client->dev, "%s: can't set control register\n", __func__);
+		return -EIO;
+	}
+
+	/* wait untill tcxo operation is finished */
+	msleep(20);
 
 	return 0;
 }
