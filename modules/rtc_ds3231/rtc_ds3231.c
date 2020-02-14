@@ -15,6 +15,7 @@
 #include <linux/rtc.h>
 #include <linux/bcd.h>
 #include <linux/device.h>
+#include <linux/delay.h>
 
 /* offsets into register area */
 #define REG_OFFSET_SEC		0 /* 00-59 */
@@ -55,6 +56,15 @@
 #define REG_ADDR_ALARM_2_DAY	0x0d
 #define REG_ADDR_ALARM_2_DATE	0x0d
 
+/* defines for bits of status register */
+/*
+ * This bit indicates the device is busy executing TCXO functions.
+ * It goes to logic 1 when the conversion signal to the temperature
+ * sensor is asserted and then is cleared when the device is in 
+ * the 1-minute idle state
+ */
+#define STATUS_BSY_BIT ((unsigned char)(1 << 2))
+
 /* defines for bits of control register */
 /*
  * When set to logic 0, the oscillator is started.
@@ -68,6 +78,13 @@
  * When BBSQW is logic 0, the INT/SQW pin goes high impedance when.
  */
 #define CNTRL_BBSQW_BIT ((unsigned char)(1 << 6))
+
+/*
+ * Setting this bit to 1 forces the temperature sensor to convert
+ * the temperature into digital code and execute the TCXO algorithm to
+ * update the capacitance array to the oscillator.
+ */
+#define CNTRL_CONV_BIT ((unsigned char)(1 << 5))
 
 /*
  * Internal struct for collect all device driver data
@@ -97,7 +114,8 @@ static int write_reg(struct i2c_client *client, unsigned char base_reg,
 	msg.buf = data;
 
 	if (i2c_transfer(client->adapter, &msg, 1) != 1) {
-		dev_info(&client->dev, "write to reg 0x%x error\n", base_reg);
+		dev_info(&client->dev, "%s: write to reg 0x%x error\n", 
+				__func__, base_reg);
 		return -EIO;
 	}
 
@@ -122,9 +140,52 @@ static int read_reg(struct i2c_client *client, unsigned char base_reg,
 	};
 
 	if (i2c_transfer(client->adapter, &msgs[0], 2) != 2) {
-		dev_info(&client->dev, "reg reg 0x%x error\n", base_reg);
+		dev_info(&client->dev, "%s: reg reg 0x%x error\n",
+				__func__, base_reg);
 		return -EIO;
 	}
+
+	return 0;
+}
+
+/* 1=busy; */
+static int ds3231_check_bsy_bit(struct i2c_client *client)
+{
+	unsigned char status = 0;
+
+	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
+		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
+		return -EIO;
+	}
+
+	if (status & STATUS_BSY_BIT)
+		return 1;
+
+	return 0;
+}
+
+static int ds3231_force_tcxo(struct i2c_client *client)
+{
+	unsigned char control = 0;
+
+	while (ds3231_check_bsy_bit(client))
+		msleep(20);
+
+	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
+		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
+		return -EIO;
+	}
+
+	/* force temprature sensor bit enable */
+	control |= CNTRL_CONV_BIT;
+
+	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
+		dev_info(&client->dev, "%s: can't set CNTRL_CONV_BIT\n", __func__);
+		return -EIO;
+	}
+
+	/* wait while tcxo operation finished */
+	msleep(20);
 
 	return 0;
 }
@@ -132,26 +193,23 @@ static int read_reg(struct i2c_client *client, unsigned char base_reg,
 static int ds3231_init(struct i2c_client *client)
 {
 	unsigned char control = 0;
-	unsigned char status = 0;
 
 	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
-		dev_info(&client->dev, "Unable to get chip control reg\n");
-		return -EIO;
-	}
-
-	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
-		dev_info(&client->dev, "Unable to get chip status reg\n");
+		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
 		return -EIO;
 	}
 
 	/* check that oscillator is running */
 	if (control & CNTRL_EOSC_BIT) {
-		dev_info(&client->dev, "error: oscillator stopped\n");
+		dev_info(&client->dev, "%s: error: oscillator stopped\n", __func__);
 		return -EIO;
 	}
 
-	dev_info(&client->dev, "TRUE control = 0x%x\n", control);
-	dev_info(&client->dev, "TRUE status = 0x%x\n", status);
+	/* need to adjust oscillator with environmental temperature */
+	if (ds3231_force_tcxo(client)) {
+		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
+		return -EIO;
+	}
 
 	return 0;
 }
