@@ -9,28 +9,34 @@
 #include <dt-bindings/pinctrl/am33xx.h>
 #include <dt-bindings/pinctrl/omap.h>
 
-/*
- * BBB: P9.23 external user led
- */
-/ {
-	leds {
-		anisyan_led {
-			label = "anisyan_led";
-			gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>;
-			default-state = "off";
-		};
-	};
-};
-
-/*
- * BBB: P9.17 - I2C1_SCL
- * BBB: P9.18 - I2C1_SDA
- */
 &am33xx_pinmux {
+	/*
+	 * BBB: P9.17 - I2C1_SCL
+	 * BBB: P9.18 - I2C1_SDA
+	 */
 	i2c1_pins: pinmux_i2c1_pins {
 		pinctrl-single,pins = < /* enable receiver | pullup selected | disable pullup/down resistor */
 			AM33XX_IOPAD(AM335X_PIN_SPI0_D1, (1 << 5) | (1 << 4) | (1 << 3) | MUX_MODE2) /* sda */
 			AM33XX_IOPAD(AM335X_PIN_SPI0_CS0, (1 << 5) | (1 << 4) | (1 << 3) | MUX_MODE2) /* scl */
+		>;
+	};
+
+	/*
+	 * BBB: P9.23 external led for use in ds3231 driver (gpio1_17)
+	 */
+	my_rtc_led_pin: pinmux_my_rtc_led_pin {
+		pinctrl-single,pins = < /* disable receiver | pulldown selected | disable pullup/down resistor */
+			AM33XX_IOPAD(AM335X_PIN_GPMC_A1, (0 << 5) | (0 << 4) | (0 << 3) | MUX_MODE7)
+		>;
+	};
+
+	/*
+	 * BBB: P9.15 external input pin for use in ds3231 driver (gpio1_16)
+	 * Pin is used as gpio interrupts when ds3231 alarm is active
+	 */
+	my_rtc_sqw_in_pin: pinmux_my_rtc_sqw_in_pin {
+		pinctrl-single,pins = < /* disable receiver | pullup selected | enable pullup/down resistor */
+			AM33XX_IOPAD(AM335X_PIN_GPMC_A0, (0 << 5) | (1 << 4) | (0 << 3) | MUX_MODE7)
 		>;
 	};
 };
@@ -58,3 +64,21 @@
 		reg = <0x57>;
 	};
 };
+
+// It will be used later.
+// Goal: write one lartge driver for all my board
+// / {
+// 	customboard {
+// 		compatible = "my-custom,my-ds3231";
+
+// 		customboard_blink_led@0 {
+// 			pinctrl-names = "default";
+// 			pinctrl-0 = <&my_rtc_led_pin>;
+// 		};
+
+// 		customboard_blink_sqw_pin@1 {
+// 			pinctrl-names = "default";
+// 			pinctrl-0 = <&pinmux_my_rtc_sqw_in_pin>;
+// 		};
+// 	};
+// };

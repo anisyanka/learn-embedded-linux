@@ -17,7 +17,9 @@ I have started to learn embedded Linux and driver development with the [BeagleBo
     - [Setup NFS](#Setup-NFS)
   - [Boot the system](#Boot-the-system)
   - [Device Tree](#Device-Tree)
-    - [Beaglebone pins](#Beaglebone-pins)
+    - [Pin control settings](#Pin-control-settings)
+    - [Linux pinmux system](#Linux-pinmux-system)
+  - [Linux device drivers](#Linux-device-drivers)
 
 ## Study plan
 
@@ -374,8 +376,7 @@ Automate the boot process:
 My board uses some external GPIO pins, i2c and SPI buses. See to the schematics above.
 We must tell to the Linux kernel what pins we will use. We can describe our hardware with help [device tree](https://en.wikipedia.org/wiki/Device_tree).
 
-
-### Beaglebone pins
+### Pin control settings
 
 AM335x chip - is a SoC. There is a control module into the one. See the [am3358_reference_manual.pdf](https://github.com/anisyanka/learn-embedded-linux/tree/master/tools/doc) p.1211. This module responds for device control and status and for I/O multiplexing.
 Each configurable pin has its own configuration register for pullup/down control and for it assignment.
@@ -421,5 +422,23 @@ My gpio led connected to P9.23 pin to the beaglebone. It pin corresponds to GPIO
 This corresponds `conf_gpmc_a1` regtister. It has 0x844 offset from the start of control module. It's all.
 See [am3358_briefly_datasheet.pdf](https://github.com/anisyanka/learn-embedded-linux/tree/master/tools/doc) for pin mode details (Pin Attributes table).
 
-**Linux pinmux system**
+### Linux pinmux system
 
+There is one-register-per-pin type of device tree. It is case of AM335x chip. It means that for any processor pin
+there is special register to setup pin functions. We can enable this in config file with help `CONFIG_PINCTRL_SINGLE=y`.
+After this we need to describe every pin, which we want to use in device tree as a child of control module. In case of
+GPIO pins it is named `pinmux controller`. It has [this](https://github.com/anisyanka/learn-embedded-linux/blob/master/kernel/Documentation/devicetree/bindings/pinctrl/pinctrl-single.txt) device tree bindings. And see in  my [custom-dts](https://github.com/anisyanka/learn-embedded-linux/blob/master/kernel/arch/arm/boot/dts/am335x-boneblack-custom.dts) file.
+The pin configuration nodes for pinctrl-single are specified as pinctrl
+register offset and value pairs using pinctrl-single,pins. Only the bits
+specified in pinctrl-single,function-mask are updated. For example, setting
+a pin for a device could be done with:
+```
+	pinctrl-single,pins = <0xdc 0x118>;
+```
+Where 0xdc is the offset from the pinctrl register base address for the
+device pinctrl register, and 0x118 contains the desired value of the
+pinctrl register.
+
+## Linux device drivers
+
+--in progress--
