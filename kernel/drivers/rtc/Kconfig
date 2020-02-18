@@ -866,6 +866,63 @@ config RTC_DRV_DS3231
 	  This driver can also be built as a module.  If so, the module
 	  will be called rtc-ds3231.
 
+config RTC_DRV_DS3231_FORMAT_12
+	bool "RTC DS3231 use 12-hour format for time"
+	depends on RTC_DRV_DS3231
+	default n
+	help
+	  Say [y] if you want to use 12-hour format instead 24
+
+config RTC_DRV_DS3231_32kHZ_OUTPUT_EN
+	bool "RTC DS3231 enable 32kHz output"
+	depends on RTC_DRV_DS3231
+	default n
+	help
+	  Say [y] if you want to enable 32kHz output from ds3231 chip
+
+choice
+	prompt "RTC DS3231 enable SQW pin"
+	depends on RTC_DRV_DS3231
+	default n
+	help
+	  Functionality for ds3231 SQW pin
+
+config RTC_DRV_DS3231_NOT_USE_SQW_PIN
+	bool "SQW pin isn't used now"
+
+config RTC_DRV_DS3231_SQUARE_WAVE_EN
+	bool "Use wave output on SQW pin"
+	help
+		Say [y] if you want to use square wave output from ds3231 chip
+
+config RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	bool "Use SQW pin as GPIO interrupts for CPU"
+	help
+		Say [y] if you want to use SQW ds3231 pin as GPIO INT.
+		Before you must point corresponding pin in device tree.
+endchoice
+
+choice
+	prompt "Wave frequency"
+	depends on RTC_DRV_DS3231_SQUARE_WAVE_EN
+	default n
+	help
+	  Output frequency for SWQ pin if wave ouput was enabled
+
+config RTC_DRV_DS3231_SQUARE_1_HZ
+	bool "1 Hz"
+
+config RTC_DRV_DS3231_SQUARE_1024_HZ
+	bool "1024 Hz"
+
+config RTC_DRV_DS3231_SQUARE_4096_HZ
+	bool "4096 Hz"
+
+config RTC_DRV_DS3231_SQUARE_8192_HZ
+	bool "8192 Hz"
+
+endchoice
+
 config RTC_DRV_DS3232
 	tristate "Dallas/Maxim DS3232/DS3234"
 	depends on RTC_I2C_AND_SPI

@@ -501,10 +501,6 @@ static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		return -EIO;
 	}
 
-	/*
-	 * ADD WRITE TO CONTROL REGISTER HERE
-	 */
-
 	/* save alarm time to local alarm structure */
 	driver_data->alarm_time.time.tm_sec = alarm->time.tm_sec;
 	driver_data->alarm_time.time.tm_min = alarm->time.tm_min;
@@ -546,6 +542,10 @@ static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		dev_info(dev, "%s: i2c write error\n", __func__);
 		return -EIO;
 	}
+
+	/*
+	 * ToDo: ADD WRITE TO CONTROL REGISTER HERE (bit A1IE)
+	 */
 
 	return 0;
 }
@@ -641,7 +641,7 @@ static int ds3231_init(struct i2c_client *client)
 	}
 
 	/* need to adjust oscillator with environmental temperature */
-	if (ds3231_force_tcxo_set_bit(client, &control)) {
+	if (ds3231_force_tcxo_set_bit(client, &control) < 0) {
 		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
 		return -EIO;
 	}
@@ -661,40 +661,50 @@ static int ds3231_init(struct i2c_client *client)
 	status  |= STATUS_EN32kHz_BIT;
 #endif
 
-	control &= ~(CNTRL_BBSQW_BIT); /* disable wave output */
-	control &= ~(CNTRL_INTCN_BIT); /* disable interrupts */
-	control &= ~(CNTRL_A2IE_BIT); /* disable alarm 2 interrupt */
-	control &= ~(CNTRL_A1IE_BIT); /* disable alarm 1 interrupt */
-
 	/*
 	 * Apply default value
 	 * Code below will rewrite this values if
 	 * corresponding definition is defined
 	 */
+	control &= ~(CNTRL_BBSQW_BIT); /* disable wave output */
+	control &= ~(CNTRL_INTCN_BIT); /* disable interrupts */
+	control &= ~(CNTRL_A2IE_BIT); /* disable alarm 2 interrupt */
+	control &= ~(CNTRL_A1IE_BIT); /* disable alarm 1 interrupt */
+
 	SET_RS_DEFAULT_HZ(control);
 
-#ifdef CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
+#ifndef CONFIG_RTC_DRV_DS3231_NOT_USE_SQW_PIN
+# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
 	control |= CNTRL_BBSQW_BIT;
 
-# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1_HZ
+#  ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1_HZ
 	SET_1_HZ(control);
-# endif
+#  endif
 
-# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1024_HZ
+#  ifdef CONFIG_RTC_DRV_DS3231_SQUARE_1024_HZ
 	SET_1024_HZ(control);
-# endif
+#  endif
 
-# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_4096_HZ
+#  ifdef CONFIG_RTC_DRV_DS3231_SQUARE_4096_HZ
 	SET_4096_HZ(control);
-# endif
+#  endif
 
-# ifdef CONFIG_RTC_DRV_DS3231_SQUARE_8192_HZ
+#  ifdef CONFIG_RTC_DRV_DS3231_SQUARE_8192_HZ
 	SET_8192_HZ(control);
-# endif
-#endif  // CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
+#  endif
+# endif  // CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
 
-#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
-#endif
+# ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	control |= CNTRL_INTCN_BIT; /* enable INT */
+
+	/*
+	 * ToDo: Create kernel thread and semaphore for handler interrupts
+	 * In IT handler you need reset RTC IT ALARM A1F flag in status register.
+	 * When this flag is 1, INT/SQW pin is also asserted.
+	 * This flag can only be written to logic 0
+	 */
+# endif
+#endif  // CONFIG_RTC_DRV_DS3231_NOT_USE_SQW_PIN
 
 	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
 		dev_info(&client->dev, "%s: can't set control register\n", __func__);
@@ -708,6 +718,11 @@ static int ds3231_init(struct i2c_client *client)
 
 	/* wait untill tcxo operation is finished */
 	msleep(20);
+
+
+	/*
+	 * ToDo: creatre sysfs files to set/read alarms
+	 */
 
 	return 0;
 }
