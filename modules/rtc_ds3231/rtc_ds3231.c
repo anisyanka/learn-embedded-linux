@@ -16,6 +16,21 @@
 #include <linux/bcd.h>
 #include <linux/device.h>
 #include <linux/delay.h>
+#include <linux/sched.h>
+#include <linux/kthread.h>
+#include <linux/semaphore.h>
+
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+/*
+ * Create semaphore to use it in interrupt handler and created thread.
+ *
+ * It looks like deferred interrupt:
+ * Tread waits, when interrupt happens and into handler we will increment semaphore
+ * and thread will wake up.
+ */
+static struct semaphore ds3231_alarm_sem;
+
+#endif // CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 /* offsets into register area */
 #define REG_OFFSET_SEC			0 /* 00-59 */
@@ -703,6 +718,8 @@ static int ds3231_init(struct i2c_client *client)
 	 * When this flag is 1, INT/SQW pin is also asserted.
 	 * This flag can only be written to logic 0
 	 */
+
+	sema_init(ds3231_alarm_sem, 0);
 # endif
 #endif  // CONFIG_RTC_DRV_DS3231_NOT_USE_SQW_PIN
 
