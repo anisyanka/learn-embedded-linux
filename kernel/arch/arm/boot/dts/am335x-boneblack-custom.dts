@@ -54,12 +54,12 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	my-rtc-ds3231@68 {
+	rtc@68 {
 		compatible = "my-custom,my-ds3231";
 		reg = <0x68>;
 	};
 
-	my-eeprom-at24c32@57 {
+	eeprom@57 {
 		compatible = "my-custom,my-at24c32";
 		reg = <0x57>;
 	};
