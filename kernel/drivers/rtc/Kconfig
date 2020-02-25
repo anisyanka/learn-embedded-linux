@@ -883,7 +883,6 @@ config RTC_DRV_DS3231_32kHZ_OUTPUT_EN
 choice
 	prompt "RTC DS3231 enable SQW pin"
 	depends on RTC_DRV_DS3231
-	default n
 	help
 	  Functionality for ds3231 SQW pin
 
@@ -905,7 +904,6 @@ endchoice
 choice
 	prompt "Wave frequency"
 	depends on RTC_DRV_DS3231_SQUARE_WAVE_EN
-	default n
 	help
 	  Output frequency for SWQ pin if wave ouput was enabled
 
