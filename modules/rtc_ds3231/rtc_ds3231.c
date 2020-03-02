@@ -19,18 +19,27 @@
 #include <linux/sched.h>
 #include <linux/kthread.h>
 #include <linux/semaphore.h>
+#include <linux/stat.h>
 
-#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 /*
- * Create semaphore to use it in interrupt handler and created thread.
+ * After loading this module to kernel (or statically linked with kernel) in the
+ * /sys/class/rtc/rtc0/device will appear to new files(attributes):
  *
- * It looks like deferred interrupt:
- * Tread waits, when interrupt happens and into handler we will increment semaphore
- * and thread will wake up.
+ * 1. alarm_int_enabled - file to enable or disable detect alarm interrupt
+ *      write:
+ *            `echo 0 > /sys/class/rtc/rtc0/device/alarm_int_enabled` - disable INT
+ *            `echo 1 > /sys/class/rtc/rtc0/device/alarm_int_enabled` - enable INT
+ *      read:
+ *            `cat /sys/class/rtc/rtc0/device/alarm_int_enabled` - returns current int status
+ *             1 - interrupts enabled
+ *             0 - interrupts disabled
+ *
+ * 2. alarm_time - file to set time for alaram
+ *       write:
+ *            `echo "Tue May 26 21:51:50 2015" >> /sys/class/rtc/rtc0/device/alarm_time` - set alaram
+ *       read:
+ *            `cat /sys/class/rtc/rtc0/device/alarm_time` - read current setted alaram time
  */
-static struct semaphore ds3231_alarm_sem;
-
-#endif // CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 /* offsets into register area */
 #define REG_OFFSET_SEC			0 /* 00-59 */
@@ -101,6 +110,16 @@ static struct semaphore ds3231_alarm_sem;
  */
 #define STATUS_EN32kHz_BIT ((unsigned char)(1 << 3))
 
+/*
+ * A logic 1 in the alarm 1/2 flag bit indicates that the time matched the
+ * alarm 1/2 registers. If the A1IE bit is logic 1 and the INTCN bit is set
+ * to logic 1, the INT/SQW pin is also asserted.
+ *
+ * A1F is cleared when written to logic 0. This bit can only be written
+ * to logic 0. Attempting to write to logic 1 leaves the value unchanged.
+ */
+#define STATUS_A2F_BIT ((unsigned char)(1 << 1))
+#define STATUS_A1F_BIT ((unsigned char)(1 << 0))
 
 /* DEFINITIONS FOR BITS OF CONTROL REGISTER: */
 /*
@@ -206,6 +225,14 @@ struct ds3231_state {
 	unsigned a1m2:1;
 	unsigned a1m3:1;
 	unsigned a1m4:1;
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	/* '1' means that alarm was enabled from user space */
+	int alarm_int_enabled;
+	int alarm_int_enabled_old;
+
+	/* It used in interrupt handler and created kernel thread.*/
+	struct semaphore alarm_interrupt_sem;
+#endif
 };
 
 #define HOURS_FORMAT_12(__ds3231_data__) __ds3231_data__->hour_format_bit = 1
@@ -318,13 +345,86 @@ static int read_reg(struct i2c_client *client, unsigned char base_reg,
 	return 0;
 }
 
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+static int ds3231_disable_onchip_alarm_detect(struct i2c_client *client)
+{
+	unsigned char control;
+
+	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
+		dev_info(&client->dev,
+			"%s: unable to get chip control reg\n", __func__);
+		return -EIO;
+	}
+
+	control &= ~(CNTRL_INTCN_BIT);
+	control &= ~(CNTRL_A2IE_BIT);
+	control &= ~(CNTRL_A1IE_BIT);
+
+	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
+		dev_info(&client->dev,
+			"%s: can't set control register\n",
+			__func__);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int ds3231_clear_onchip_alarm_flags(struct i2c_client *client)
+{
+	unsigned char status;
+
+	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
+		dev_info(&client->dev,
+			"%s: unable to get chip status reg\n", __func__);
+		return -EIO;
+	}
+
+	status &= ~(STATUS_A2F_BIT);
+	status &= ~(STATUS_A1F_BIT);
+
+	if (write_reg(client, REG_ADDR_STATUS, status) < 0) {
+		dev_info(&client->dev,
+			"%s: can't set control register\n",
+			__func__);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+static int ds3231_enable_onchip_alarm_detect(struct i2c_client *client)
+{
+	unsigned char control;
+
+	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
+		dev_info(&client->dev,
+			"%s: unable to get chip control reg\n", __func__);
+		return -EIO;
+	}
+
+	control |= CNTRL_INTCN_BIT;
+	control |= CNTRL_A1IE_BIT;
+
+	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
+		dev_info(&client->dev,
+			"%s: can't set control register\n",
+			__func__);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+#endif
+
 static int ds3231_rtc_read_time(struct device *dev, struct rtc_time *tm)
 {
 	unsigned int pm = 0;
 	unsigned char buf_addr[] = { REG_ADDR_SEC };
 	unsigned char buf[REG_CNT_FOR_TIME] = { 0 };
 	struct i2c_msg msgs[2] = { { 0 }, { 0 } };
-	struct ds3231_state *driver_data = NULL;
+	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(to_i2c_client(dev));
 	if (!driver_data) {
@@ -387,7 +487,7 @@ static int ds3231_rtc_set_time(struct device *dev, struct rtc_time *tm)
 	unsigned char set_data[REG_CNT_FOR_TIME + 1] = { REG_ADDR_SEC };
 	unsigned char *buf = set_data + 1;
 	struct i2c_msg msg = { 0 };
-	struct ds3231_state *driver_data = NULL;
+	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(to_i2c_client(dev));
 	if (!driver_data) {
@@ -437,7 +537,7 @@ static int ds3231_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	unsigned char buf_addr[] = { REG_ADDR_ALARM_1_SEC };
 	unsigned char buf[REG_CNT_FOR_ALARM] = { 0 };
 	struct i2c_msg msgs[2] = { { 0 }, { 0 } };
-	struct ds3231_state *driver_data = NULL;
+	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(to_i2c_client(dev));
 	if (!driver_data) {
@@ -483,7 +583,7 @@ static int ds3231_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	}
 
 	if (driver_data->alarm_dy_dt_bit)
-		alarm->time.tm_wday = bcd2bin(buf[REG_OFFSET_ALARM_1_WEEK_DAY] & 0x07) - 1;
+		alarm->time.tm_wday = bcd2bin(buf[REG_OFFSET_ALARM_1_WEEK_DAY] & 0x07) - 1; /*tm_wday: 0-6, rtc: 1-7*/
 	else
 		alarm->time.tm_mday = bcd2bin(buf[REG_OFFSET_ALARM_1_DATE] & 0x3f);
 
@@ -493,13 +593,6 @@ static int ds3231_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		alarm->time.tm_sec, alarm->time.tm_min, alarm->time.tm_hour,
 		alarm->time.tm_mday, alarm->time.tm_wday);
 
-	/* save alarm time to local alarm structure */
-	driver_data->alarm_time.time.tm_sec = alarm->time.tm_sec;
-	driver_data->alarm_time.time.tm_min = alarm->time.tm_min;
-	driver_data->alarm_time.time.tm_hour = alarm->time.tm_hour;
-	driver_data->alarm_time.time.tm_wday = alarm->time.tm_wday;
-	driver_data->alarm_time.time.tm_mday = alarm->time.tm_mday;
-
 	return 0;
 }
 
@@ -508,20 +601,13 @@ static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 	unsigned char set_data[REG_CNT_FOR_ALARM + 1] = { REG_ADDR_ALARM_1_SEC };
 	unsigned char *buf = set_data + 1;
 	struct i2c_msg msg = { 0 };
-	struct ds3231_state *driver_data = NULL;
+	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(to_i2c_client(dev));
 	if (!driver_data) {
 		dev_info(dev, "%s: i2c_get_clientdata: error\n", __func__);
 		return -EIO;
 	}
-
-	/* save alarm time to local alarm structure */
-	driver_data->alarm_time.time.tm_sec = alarm->time.tm_sec;
-	driver_data->alarm_time.time.tm_min = alarm->time.tm_min;
-	driver_data->alarm_time.time.tm_hour = alarm->time.tm_hour;
-	driver_data->alarm_time.time.tm_wday = alarm->time.tm_wday;
-	driver_data->alarm_time.time.tm_mday = alarm->time.tm_mday;
 
 	driver_data->am_pm_bit = 0;
 	if (IS_DATE_FORMAT_12_HOUR(driver_data)) {
@@ -540,8 +626,8 @@ static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 			((unsigned char)(driver_data->a1m3 << ALARM_A1Mx_BIT_POS)) | \
 			((unsigned char)(driver_data->hour_format_bit << HOUR_REG_FORMAT_BIT_POS)) | \
 			((unsigned char)(driver_data->am_pm_bit << HOUR_REG_AM_PM_BIT_POS));
-	if (driver_data->alarm_dy_dt_bit)
-		buf[REG_OFFSET_ALARM_1_WEEK_DAY] = (bin2bcd(alarm->time.tm_wday) & 0x07) | \
+	if (driver_data->alarm_dy_dt_bit) /*tm_wday: 0-6, rtc: 1-7*/
+		buf[REG_OFFSET_ALARM_1_WEEK_DAY] = ((bin2bcd(alarm->time.tm_wday) + 1) & 0x07) | \
 				((unsigned char)(driver_data->a1m4 << ALARM_A1Mx_BIT_POS)) | \
 				((unsigned char)(driver_data->alarm_dy_dt_bit << ALARM_REG_DY_DT_BIT_POS));
 	else
@@ -558,13 +644,290 @@ static int ds3231_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
 		return -EIO;
 	}
 
-	/*
-	 * ToDo: ADD WRITE TO CONTROL REGISTER HERE (bit A1IE)
-	 */
-
 	return 0;
 }
 
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+/*
+ * Interface for exporting `alarm_int_enabled` variable
+ */
+static ssize_t alarm_int_enabled_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int len;
+	struct ds3231_state *driver_data;
+
+	driver_data = dev_get_drvdata((const struct device *)dev);
+	if (!driver_data) {
+		dev_info(dev, "%s: dev_get_drvdata: error\n", __func__);
+		return -EIO;
+	}
+
+	len = sprintf(buf, "%d\n", driver_data->alarm_int_enabled);
+	if (len <= 0) {
+		dev_info(dev, "%s: sprintf: error\n", __func__);
+		return -EIO;
+	}
+
+	return len;
+}
+
+static ssize_t alarm_int_enabled_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	int ret;
+	struct ds3231_state *driver_data;
+
+	driver_data = dev_get_drvdata((const struct device *)dev);
+	if (!driver_data) {
+		dev_info(dev, "%s: dev_get_drvdata: error\n", __func__);
+		return -EIO;
+	}
+
+	ret = kstrtoint(buf, 10, &driver_data->alarm_int_enabled);
+	if (ret != 0) {
+		dev_info(dev, "%s: kstrtoint: error\n", __func__);
+		return -EIO;
+	}
+
+	/* conversion to 1 or 0 */
+	driver_data->alarm_int_enabled = (int)(!!driver_data->alarm_int_enabled);
+
+	/* avoid continuously write same values to a chip */
+	if (driver_data->alarm_int_enabled == \
+			driver_data->alarm_int_enabled_old)
+		return count;
+
+	/* save new value */
+	driver_data->alarm_int_enabled_old = driver_data->alarm_int_enabled;
+
+	/*
+	 * Disable on chip interrupts to avoid interrupt during setting
+	 * new data to ds3231 alarm registers
+	 */
+	ret = ds3231_disable_onchip_alarm_detect(to_i2c_client(dev));
+	if (ret != 0) {
+		dev_info(dev,
+			"%s: ds3231_disable_onchip_alarm_detect: error\n",
+			__func__);
+		return -EIO;
+	}
+
+	ret = ds3231_clear_onchip_alarm_flags(to_i2c_client(dev));
+	if (ret != 0) {
+		dev_info(dev,
+			"%s: ds3231_clear_onchip_alarm_flags: error\n",
+			__func__);
+		return -EIO;
+	}
+
+	if (driver_data->alarm_int_enabled) {
+		ret = ds3231_set_alarm(dev, &driver_data->alarm_time);
+		if (ret != 0) {
+			dev_info(dev,
+				"%s: ds3231_set_alarm: error\n",
+				__func__);
+			return -EIO;
+		}
+
+		/* read alarm time just for save to internal driver date and print log */
+		(void)ds3231_read_alarm(dev, &driver_data->alarm_time);
+
+		ret = ds3231_enable_onchip_alarm_detect(to_i2c_client(dev));
+		if (ret != 0) {
+			dev_info(dev,
+				"%s: ds3231_enable_onchip_alarm_detect: error\n",
+				__func__);
+			return -EIO;
+		}
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR(alarm_int_enabled, (S_IWUSR | S_IRUGO), \
+		alarm_int_enabled_show, alarm_int_enabled_store);
+
+enum weekdays { SUN = 0, MON, TUE, WED,
+		THU, FRI, SAT };
+
+enum months { JAN = 0, FEB, MAR, APR, MAY, JUN,
+              JUL, AUG, SEP, OCT, NOV, DEC };
+
+#define WEEKDAY_CNT 7
+static char wday_name[7][3] = {
+	[SUN] = "Sun",
+	[MON] = "Mon",
+	[TUE] = "Tue",
+	[WED] = "Wed",
+	[THU] = "Thu",
+	[FRI] = "Fri",
+	[SAT] = "Sat"
+};
+
+static char mon_name[12][3] = {
+	[JAN] = "Jan",
+	[FEB] = "Feb",
+	[MAR] = "Mar",
+	[APR] = "Apr",
+	[MAY] = "May",
+	[JUN] = "Jun",
+	[JUL] = "Jul",
+	[AUG] = "Aug",
+	[SEP] = "Sep",
+	[OCT] = "Oct",
+	[NOV] = "Nov",
+	[DEC] = "Dec"
+};
+
+/*
+ * Interface for exporting `alarm_time` variable
+ */
+static ssize_t alarm_time_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int len;
+	struct rtc_time *alarm_timeptr;
+	struct ds3231_state *driver_data;
+
+	driver_data = dev_get_drvdata((const struct device *)dev);
+	if (!driver_data) {
+		dev_info(dev, "%s: dev_get_drvdata: error\n", __func__);
+		return -EIO;
+	}
+
+	alarm_timeptr = &driver_data->alarm_time.time;
+
+	/* convert alarm time to string */
+	len = sprintf(buf, "%.3s %.3s%3d %.2d:%.2d:%.2d %d\n",
+			wday_name[alarm_timeptr->tm_wday],
+			mon_name[alarm_timeptr->tm_mon],
+			alarm_timeptr->tm_mday, alarm_timeptr->tm_hour,
+			alarm_timeptr->tm_min, alarm_timeptr->tm_sec,
+			1900 + alarm_timeptr->tm_year);
+
+	return len;
+}
+
+/*
+ * Convert input string to rtc_time driver data
+ *
+ * There is nothing in Linux kernel for parsing time string,
+ * that's why I try to do own bicycle
+ */
+static int parse_time_buffer_to_rtc_struct(const char *buf, struct rtc_time *time)
+{
+	int i;
+	int ret = 0;
+	int sec = -1;
+	int min = -1;
+	int hours = -1;
+	int weekday = -1;
+	int monthday = -1;
+	int cur_pos; /* current position in input buffer */
+	int cur_expect_strfield_size = 3; /* size of word of day name <f.e Mon>*/
+	char temp[4];
+
+	/* 1. parse weekday */
+	cur_pos = 0;
+	for (i = 0; i < WEEKDAY_CNT; ++i) {
+		if (strncmp(&wday_name[i][0],
+				buf + cur_pos,
+				cur_expect_strfield_size) == 0) {
+			weekday = i; /* value: 0 - 6 */
+			break;
+		}
+	}
+	if (weekday == -1)
+		goto parse_err;
+
+	/* 2. parse monthday */
+	cur_pos = 4;
+	cur_expect_strfield_size = 2; /* size of date word <f.e. 23>*/
+
+	memset(temp, 0, sizeof(temp));
+	memcpy(temp, buf + cur_pos, cur_expect_strfield_size);
+	if (kstrtoint(temp, 10, &monthday) != 0)
+		goto parse_err;
+	
+	/* 3. parse hour */
+	cur_pos = 7;
+	cur_expect_strfield_size = 2; /* size of hour word <f.e. 15>*/
+
+	memset(temp, 0, sizeof(temp));
+	memcpy(temp, buf + cur_pos, cur_expect_strfield_size);
+	if (kstrtoint(temp, 10, &hours) != 0)
+		goto parse_err;
+
+	/* 4. parse min */
+	cur_pos = 10;
+	cur_expect_strfield_size = 2; /* size of hour word <f.e. 15>*/
+
+	memset(temp, 0, sizeof(temp));
+	memcpy(temp, buf + cur_pos, cur_expect_strfield_size);
+	if (kstrtoint(temp, 10, &min) != 0)
+		goto parse_err;
+
+	/* 5. parse sec */
+	cur_pos = 13;
+	cur_expect_strfield_size = 2; /* size of hour word <f.e. 15>*/
+
+	memset(temp, 0, sizeof(temp));
+	memcpy(temp, buf + cur_pos, cur_expect_strfield_size);
+	if (kstrtoint(temp, 10, &sec) != 0)
+		goto parse_err;
+
+	/*
+	 * Save time to driver data.
+	 * Use it when `1` write to the `alarm_int_enabled` file.
+	 */
+	time->tm_sec = sec;
+	time->tm_min = min;
+	time->tm_hour = hours;
+	time->tm_wday = weekday;
+	time->tm_mday = monthday;
+
+	goto parse_ok;
+
+parse_err:
+	ret = -1;
+
+parse_ok:
+	return ret;
+}
+
+static ssize_t alarm_time_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct ds3231_state *driver_data;
+	static char example[] = "<weekday(f.e Wen)> <monthday(f.e 23)> hh:mm:ss";
+
+	driver_data = dev_get_drvdata((const struct device *)dev);
+	if (!driver_data) {
+		dev_info(dev, "%s: dev_get_drvdata: error\n", __func__);
+		return -EIO;
+	}
+
+	if (parse_time_buffer_to_rtc_struct(buf, &driver_data->alarm_time.time) != 0) {
+		dev_info(dev,
+			"%s: parsing time error. Try to format str like: <%s>\n",
+			__func__, example);
+		return -EIO;
+	}
+
+	return count;
+}
+
+static DEVICE_ATTR(alarm_time, (S_IWUSR | S_IRUGO), \
+		alarm_time_show, alarm_time_store);
+#endif
+
+/*
+ * ToDo: linux rtc subsystem suports rtc alarms with help ioctl() interface,
+ * bit now driver exports two attribute in sysfs to enale/disable
+ * rtc alarm interrupts. Try to do more standart interface.
+ * See https://linux.die.net/man/4/rtc.
+ */
 static const struct rtc_class_ops ds3231_rtc_ops = {
 	.read_time	= ds3231_rtc_read_time,
 	.set_time	= ds3231_rtc_set_time,
@@ -578,7 +941,8 @@ static int ds3231_check_bsy_bit(struct i2c_client *client)
 	unsigned char status = 0;
 
 	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
+		dev_info(&client->dev,
+			"%s: unable to get chip status reg\n", __func__);
 		return -EIO;
 	}
 
@@ -593,9 +957,10 @@ static int ds3231_force_tcxo_set_bit(struct i2c_client *client, unsigned char *c
 	unsigned int while_iterator = 0;
 
 	while (ds3231_check_bsy_bit(client)) {
-		/* bsy more than 1 second means hard error into rtc chip */
+		/* busy more than 1 second means hard error into rtc chip */
 		if (while_iterator == 50) {
-			dev_info(&client->dev, "%s: hard error into ds3231 chip\n", __func__);
+			dev_info(&client->dev,
+				"%s: hard error into ds3231 chip\n", __func__);
 			return -EIO;
 		}
 
@@ -615,7 +980,8 @@ static int ds3231_check_osc_reset_osf_bit(struct i2c_client *client,
 {
 	/* check in control that oscillator is running */
 	if (*control & CNTRL_EOSC_BIT) {
-		dev_info(&client->dev, "%s: control error: oscillator stopped\n", __func__);
+		dev_info(&client->dev,
+			"%s: control error: oscillator stopped\n", __func__);
 		return -EIO;
 	}
 
@@ -636,28 +1002,33 @@ static int ds3231_init(struct i2c_client *client)
 
 	driver_data = i2c_get_clientdata(client);
 	if (!driver_data) {
-		dev_info(&client->dev, "%s: i2c_get_clientdata: error\n", __func__);
+		dev_info(&client->dev,
+			"%s: i2c_get_clientdata: error\n", __func__);
 		return -EIO;
 	}
 
 	if (read_reg(client, REG_ADDR_CONTROL, &control) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip control reg\n", __func__);
+		dev_info(&client->dev,
+			"%s: unable to get chip control reg\n", __func__);
 		return -EIO;
 	}
 
 	if (read_reg(client, REG_ADDR_STATUS, &status) < 0) {
-		dev_info(&client->dev, "%s: unable to get chip status reg\n", __func__);
+		dev_info(&client->dev,
+			"%s: unable to get chip status reg\n", __func__);
 		return -EIO;
 	}
 
 	if (ds3231_check_osc_reset_osf_bit(client, &control, &status) < 0) {
-		dev_info(&client->dev, "%s: ds3231_check_osc_reset_osf_bit failed \n", __func__);
+		dev_info(&client->dev,
+			"%s: ds3231_check_osc_reset_osf_bit failed \n", __func__);
 		return -EIO;
 	}
 
 	/* need to adjust oscillator with environmental temperature */
 	if (ds3231_force_tcxo_set_bit(client, &control) < 0) {
-		dev_info(&client->dev, "%s: tcxo operation failed \n", __func__);
+		dev_info(&client->dev,
+			"%s: tcxo operation failed \n", __func__);
 		return -EIO;
 	}
 
@@ -665,6 +1036,9 @@ static int ds3231_init(struct i2c_client *client)
 	HOURS_FORMAT_24(driver_data);
 	ALARM_RESULT_OF_DAY_OF_MONTH(driver_data);
 	ALARM_WHEN_WHOLE_MATCH(driver_data);
+
+	/* set unreal value to detect first call for enabling alarm interrupts */
+	driver_data->alarm_int_enabled_old = -1;
 
 #ifdef CONFIG_RTC_DRV_DS3231_FORMAT_12
 	HOURS_FORMAT_12(driver_data);
@@ -677,7 +1051,8 @@ static int ds3231_init(struct i2c_client *client)
 #endif
 
 	/*
-	 * Apply default value
+	 * Apply default value.
+	 *
 	 * Code below will rewrite this values if
 	 * corresponding definition is defined
 	 */
@@ -707,21 +1082,12 @@ static int ds3231_init(struct i2c_client *client)
 #  ifdef CONFIG_RTC_DRV_DS3231_SQUARE_8192_HZ
 	SET_8192_HZ(control);
 #  endif
-# endif  // CONFIG_RTC_DRV_DS3231_SQUARE_WAVE_EN
+# endif
 
 # ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 	control |= CNTRL_INTCN_BIT; /* enable INT */
-
-	/*
-	 * ToDo: Create kernel thread and semaphore for handler interrupts
-	 * In IT handler you need reset RTC IT ALARM A1F flag in status register.
-	 * When this flag is 1, INT/SQW pin is also asserted.
-	 * This flag can only be written to logic 0
-	 */
-
-	sema_init(ds3231_alarm_sem, 0);
 # endif
-#endif  // CONFIG_RTC_DRV_DS3231_NOT_USE_SQW_PIN
+#endif
 
 	if (write_reg(client, REG_ADDR_CONTROL, control) < 0) {
 		dev_info(&client->dev, "%s: can't set control register\n", __func__);
@@ -736,38 +1102,91 @@ static int ds3231_init(struct i2c_client *client)
 	/* wait untill tcxo operation is finished */
 	msleep(20);
 
-
-	/*
-	 * ToDo: creatre sysfs files to set/read alarms
-	 */
-
 	return 0;
 }
 
 static int ds3231_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
 {
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	/* ISO C90 forbids mixed declarations and code --> declaring its here */
+	int sysfs_ret;
+#endif
 	struct ds3231_state *driver_data = &ds3231_data;
 
-	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+		dev_info(&client->dev,
+			"%s: i2c_check_functionality() error\n",
+			__func__);
 		return -ENODEV;
+	}
 
 	i2c_set_clientdata(client, driver_data);
 
-	if (ds3231_init(client) < 0)
+	if (ds3231_init(client) < 0) {
+		dev_info(&client->dev,
+			"%s: ds3231_init() error\n",
+			__func__);
 		return -ENODEV;
+	}
 
 	driver_data->rtc = devm_rtc_device_register(&client->dev,
 			ds3231_driver.driver.name, &ds3231_rtc_ops, THIS_MODULE);
 
-	if (IS_ERR(driver_data->rtc))
+	if (IS_ERR(driver_data->rtc)) {
+		dev_info(&client->dev,
+			"%s: devm_rtc_device_register() error\n",
+			__func__);
 		return PTR_ERR(driver_data->rtc);
+	}
+
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	/*
+	 * Thread waits, when interrupt happens and into handler we will increment semaphore
+	 * and thread will wake up.
+	 */
+	sema_init(&driver_data->alarm_interrupt_sem, 0);
+
+	/* create sysfs file to enable/disable alarm */
+	sysfs_ret = device_create_file(&client->dev, &dev_attr_alarm_int_enabled);
+	if (sysfs_ret) {
+		dev_info(&client->dev,
+			"%s: device_create_file() int file error\n",
+			__func__);
+		return -ENODEV;
+	}
+
+	/* create sysfs file to read/write alarm time */
+	sysfs_ret = device_create_file(&client->dev, &dev_attr_alarm_time);
+	if (sysfs_ret) {
+		dev_info(&client->dev,
+			"%s: device_create_file() alarm_time file error\n",
+			__func__);
+		return -ENODEV;
+	}
+
+	/*
+	 * ToDo: Create kernel thread and semaphore for handler interrupts
+	 * In IT handler you need reset RTC IT ALARM A1F flag in status register.
+	 * When this flag is 1, INT/SQW pin is also asserted.
+	 * This flag can only be written to logic 0
+	 */
+#endif
+
+	/*
+	 * ToDo: create debug interface to this driver to ability to read chip register
+	 * May by with help procfs
+	 */
 
 	return 0;
 }
 
 static int ds3231_remove(struct i2c_client *client)
 {
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	device_remove_file(&client->dev, &dev_attr_alarm_time);
+	device_remove_file(&client->dev, &dev_attr_alarm_int_enabled);
+#endif
 	return 0;
 }
 
