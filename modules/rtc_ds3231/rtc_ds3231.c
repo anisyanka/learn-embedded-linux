@@ -232,6 +232,8 @@ struct ds3231_state {
 
 	/* It used in interrupt handler and created kernel thread.*/
 	struct semaphore alarm_interrupt_sem;
+	struct task_struct *thread;
+	int task_exit:1;
 #endif
 };
 
@@ -1105,6 +1107,76 @@ static int ds3231_init(struct i2c_client *client)
 	return 0;
 }
 
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+static int setup_cpu_gpio_pin_for_interrupt(void)
+{
+	return 0;
+}
+
+static int interrupt_handler_thread(void *data)
+{
+	struct ds3231_state *driver_data;
+	struct i2c_client *client;
+	struct semaphore *alarm_sem;
+	int ret;
+
+	client = (struct i2c_client *)data;
+	if (!client) {
+		dev_info(&client->dev,
+			"%s: failed to i2c client pointer\n",
+			__func__);
+		do_exit(1);
+	}
+
+	driver_data = i2c_get_clientdata(client);
+	if (!driver_data) {
+		dev_info(&client->dev,
+			"%s: failed to get i2c_get_clientdata\n",
+			__func__);
+		do_exit(2);
+	}
+
+	alarm_sem = &driver_data->alarm_interrupt_sem;
+	if (!alarm_sem) {
+		dev_info(&client->dev,
+			"%s: failed to get i2c_get_clientdata\n",
+			__func__);
+		do_exit(3);
+	}
+
+	/* duty cycle */
+	while (!kthread_should_stop()) {
+		/*
+		 * If semaphore has been uped in the interrupt, we will
+		 * acquire it here, else thread will go to sleep.
+		 */
+		if (!down_interruptible(alarm_sem)) {
+			if (driver_data->task_exit) {
+				msleep(20);
+				continue;
+			}
+
+			/* proccess ds3231 gpio interrupt */
+			dev_info(&client->dev, "ds3231 gpio alarm interrupt detect\n");
+
+			ret = ds3231_disable_onchip_alarm_detect(client);
+			if (ret != 0)
+				dev_info(&client->dev,
+					"%s: ds3231_disable_onchip_alarm_detect: error\n",
+					__func__);
+
+			ret = ds3231_clear_onchip_alarm_flags(client);
+			if (ret != 0)
+				dev_info(&client->dev,
+					"%s: ds3231_clear_onchip_alarm_flags: error\n",
+					__func__);
+		}
+	}
+
+	return 0;
+}
+#endif
+
 static int ds3231_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
 {
@@ -1142,10 +1214,17 @@ static int ds3231_probe(struct i2c_client *client,
 
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 	/*
-	 * Thread waits, when interrupt happens and into handler we will increment semaphore
-	 * and thread will wake up.
+	 * Thread waits, when interrupt happens and into
+	 * handler we will increment semaphore and thread will wake up.
 	 */
 	sema_init(&driver_data->alarm_interrupt_sem, 0);
+
+	if (setup_cpu_gpio_pin_for_interrupt() != 0) {
+		dev_info(&client->dev,
+			"%s: setup_cpu_gpio_pin_for_interrupt() error\n",
+			__func__);
+		return -ENODEV;
+	}
 
 	/* create sysfs file to enable/disable alarm */
 	sysfs_ret = device_create_file(&client->dev, &dev_attr_alarm_int_enabled);
@@ -1166,11 +1245,25 @@ static int ds3231_probe(struct i2c_client *client,
 	}
 
 	/*
-	 * ToDo: Create kernel thread and semaphore for handler interrupts
+	 * Create kernel thread z interrupts
+	 * See https://lwn.net/Articles/65178/
+	 *
 	 * In IT handler you need reset RTC IT ALARM A1F flag in status register.
 	 * When this flag is 1, INT/SQW pin is also asserted.
 	 * This flag can only be written to logic 0
 	 */
+	driver_data->thread = kthread_create(
+				interrupt_handler_thread,
+				client,
+				"rtc-int-handler");
+	if (IS_ERR(driver_data->thread)) {
+		dev_info(&client->dev,
+			"%s: kthread_create() error\n",
+			__func__);
+		return PTR_ERR(driver_data->thread);
+	}
+
+	wake_up_process(driver_data->thread);
 #endif
 
 	/*
@@ -1184,8 +1277,35 @@ static int ds3231_probe(struct i2c_client *client,
 static int ds3231_remove(struct i2c_client *client)
 {
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	struct ds3231_state *driver_data;
+
+	driver_data = i2c_get_clientdata(client);
+	if (!driver_data) {
+		dev_info(&client->dev,
+			"%s: failed to get i2c_get_clientdata\n", __func__);
+		return -EIO;
+	}
+
+	ds3231_disable_onchip_alarm_detect(client);
+	ds3231_clear_onchip_alarm_flags(client);
+
 	device_remove_file(&client->dev, &dev_attr_alarm_time);
 	device_remove_file(&client->dev, &dev_attr_alarm_int_enabled);
+
+	/* set exit flag to true exit from kernel thread */
+	driver_data->task_exit = 1;
+
+	/*
+	 * Release the alaram semaphore to return
+	 * from down_interruptible() function
+	 */
+	up(&driver_data->alarm_interrupt_sem);
+
+	/*
+	 * After this call kthread_should_stop() in the thread will return TRUE.
+	 * See https://lwn.net/Articles/118935/
+	 */
+	kthread_stop(driver_data->thread);
 #endif
 	return 0;
 }
