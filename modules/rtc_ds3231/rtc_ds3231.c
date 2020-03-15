@@ -231,6 +231,12 @@ struct ds3231_state {
 	int alarm_int_enabled;
 	int alarm_int_enabled_old;
 
+	/*
+	 * It is used to block user space read sysfs operation.
+	 */
+	struct semaphore is_alarm_sysfs_sem;
+	int sysfs_read_op_started:1;
+
 	/* It used in interrupt handler and created kernel thread.*/
 	struct semaphore alarm_interrupt_sem;
 	struct task_struct *thread;
@@ -933,6 +939,65 @@ static ssize_t alarm_time_store(struct device *dev,
 
 static DEVICE_ATTR(alarm_time, (S_IWUSR | S_IRUGO), \
 		alarm_time_show, alarm_time_store);
+
+static ssize_t is_alarm_happen_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	int sem_res;
+	struct ds3231_state *driver_data;
+
+	driver_data = dev_get_drvdata((const struct device *)dev);
+	if (!driver_data) {
+		dev_info(dev, "%s: dev_get_drvdata: error\n", __func__);
+		return -EIO;
+	}
+
+	/* If alarm has been disabled */
+	if (!driver_data->alarm_int_enabled) {
+		buf[0] = '0';
+		buf[1] = '\n';
+	} else {
+		/*
+		 * '1' means thar read operation is being started
+		 * and after this we must up() semaphore into interrupt handler.
+		 *
+		 * ToDo: fix a potential bug.
+		 * r/w for `sysfs_read_op_started` may be here and from interrupt
+		 * handler that's why we need to exclude simultaneous access.
+		 */
+		driver_data->sysfs_read_op_started = 1;
+
+		sem_res = down_interruptible(
+			&driver_data->is_alarm_sysfs_sem);
+
+		/* If the sleep is interrupted by a signal */
+		if (sem_res < 0) {
+			const char interrupted[] = "interrupted";
+
+			memcpy(buf, interrupted, sizeof(interrupted) - 1);
+			return sizeof(interrupted) - 1;
+		}
+
+		/*
+		 * If the semaphore is successfully acquired
+		 *
+		 * In this case it means that the semaphore
+		 * has been uped in the real alarm handler.
+		 */
+		if (sem_res == 0) {
+			buf[0] = '1';
+			buf[1] = '\n';
+		}
+
+		driver_data->sysfs_read_op_started = 0;
+	}
+
+	return 2;
+}
+
+static DEVICE_ATTR(is_alarm_happen, S_IRUGO, \
+		is_alarm_happen_show, NULL);
+
 #endif
 
 /*
@@ -1129,6 +1194,9 @@ static irqreturn_t alarm_irq_handler(int irq, void *dev)
 
 	up(&driver_data->alarm_interrupt_sem);
 
+	if (driver_data->sysfs_read_op_started)
+		up(&driver_data->is_alarm_sysfs_sem);
+
 	return IRQ_HANDLED;
 }
 
@@ -1282,6 +1350,12 @@ static int ds3231_probe(struct i2c_client *client,
 	 */
 	sema_init(&driver_data->alarm_interrupt_sem, 0);
 
+	/*
+	 * Driver exports sysfs attributer to detect
+	 * alaram has happened or not
+	 */
+	sema_init(&driver_data->is_alarm_sysfs_sem, 0);
+
 	if (setup_cpu_gpio_pin_for_interrupt(client) != 0) {
 		dev_info(&client->dev,
 			"%s: setup_cpu_gpio_pin_for_interrupt() error\n",
@@ -1303,6 +1377,15 @@ static int ds3231_probe(struct i2c_client *client,
 	if (sysfs_ret) {
 		dev_info(&client->dev,
 			"%s: device_create_file() alarm_time file error\n",
+			__func__);
+		return -ENODEV;
+	}
+
+	/* create sysfs file to poll is_alarm_happend */
+	sysfs_ret = device_create_file(&client->dev, &dev_attr_is_alarm_happen);
+	if (sysfs_ret) {
+		dev_info(&client->dev,
+			"%s: device_create_file() is_alarm_happen file error\n",
 			__func__);
 		return -ENODEV;
 	}
@@ -1356,6 +1439,7 @@ static int ds3231_remove(struct i2c_client *client)
 
 	device_remove_file(&client->dev, &dev_attr_alarm_time);
 	device_remove_file(&client->dev, &dev_attr_alarm_int_enabled);
+	device_remove_file(&client->dev, &dev_attr_is_alarm_happen);
 
 	/* set exit flag to true exit from kernel thread */
 	driver_data->task_exit = 1;
