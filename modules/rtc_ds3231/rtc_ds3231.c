@@ -20,6 +20,7 @@
 #include <linux/kthread.h>
 #include <linux/semaphore.h>
 #include <linux/stat.h>
+#include <linux/interrupt.h>
 
 /*
  * After loading this module to kernel (or statically linked with kernel) in the
@@ -234,6 +235,17 @@ struct ds3231_state {
 	struct semaphore alarm_interrupt_sem;
 	struct task_struct *thread;
 	int task_exit:1;
+
+	/*
+	 * P9.15 in beaglebone board.
+	 * This pin fall to logic zero when alarm interrupt happens.
+	 *
+	 * ToDo: remove hardcoded GPIO pin. Do it with devicetree.
+	 * https://stackoverflow.com/questions/39212771/linux-4-5-gpio-interrupt-through-devicetree-on-xilinx-zynq-platform?rq=1
+	 */
+	#define ALARM_INT_GPIO 48
+	#define ALARM_INT_GPIO_LABEL "ds3231 GPIO"
+	int irq;
 #endif
 };
 
@@ -358,7 +370,6 @@ static int ds3231_disable_onchip_alarm_detect(struct i2c_client *client)
 		return -EIO;
 	}
 
-	control &= ~(CNTRL_INTCN_BIT);
 	control &= ~(CNTRL_A2IE_BIT);
 	control &= ~(CNTRL_A1IE_BIT);
 
@@ -387,7 +398,7 @@ static int ds3231_clear_onchip_alarm_flags(struct i2c_client *client)
 
 	if (write_reg(client, REG_ADDR_STATUS, status) < 0) {
 		dev_info(&client->dev,
-			"%s: can't set control register\n",
+			"%s: can't set status register\n",
 			__func__);
 		return -EIO;
 	}
@@ -1039,14 +1050,13 @@ static int ds3231_init(struct i2c_client *client)
 	ALARM_RESULT_OF_DAY_OF_MONTH(driver_data);
 	ALARM_WHEN_WHOLE_MATCH(driver_data);
 
-	/* set unreal value to detect first call for enabling alarm interrupts */
-	driver_data->alarm_int_enabled_old = -1;
-
 #ifdef CONFIG_RTC_DRV_DS3231_FORMAT_12
 	HOURS_FORMAT_12(driver_data);
 #endif
 
 	status &= ~(STATUS_EN32kHz_BIT); /* disable 32kHz output */
+	status &= ~(STATUS_A2F_BIT); /* clear alarm 2 flag */
+	status &= ~(STATUS_A1F_BIT); /* clear alarm 1 flag */
 
 #ifdef CONFIG_RTC_DRV_DS3231_32kHZ_OUTPUT_EN
 	status  |= STATUS_EN32kHz_BIT;
@@ -1108,8 +1118,48 @@ static int ds3231_init(struct i2c_client *client)
 }
 
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
-static int setup_cpu_gpio_pin_for_interrupt(void)
+
+static irqreturn_t alarm_irq_handler(int irq, void *dev)
 {
+	struct ds3231_state *driver_data;
+
+	driver_data = i2c_get_clientdata(to_i2c_client(dev));
+	if (!driver_data)
+		return IRQ_NONE;
+
+	up(&driver_data->alarm_interrupt_sem);
+
+	return IRQ_HANDLED;
+}
+
+static int setup_cpu_gpio_pin_for_interrupt(struct i2c_client *client)
+{
+	int ret;
+	struct ds3231_state *driver_data;
+
+	gpio_request(ALARM_INT_GPIO, ALARM_INT_GPIO_LABEL);
+	gpio_direction_input(ALARM_INT_GPIO);
+	gpio_set_debounce(ALARM_INT_GPIO, 10);
+
+	driver_data = i2c_get_clientdata(client);
+	if (!driver_data) {
+		dev_info(&client->dev,
+			"%s: failed to get i2c_get_clientdata\n",
+			__func__);
+		do_exit(2);
+	}
+
+	driver_data->irq = gpio_to_irq(ALARM_INT_GPIO);
+
+	ret = request_irq(driver_data->irq,
+			alarm_irq_handler,
+			IRQF_TRIGGER_FALLING,
+			"ds3231-irq-handler",
+			&client->dev);
+
+	if (ret < 0)
+		return 1;
+
 	return 0;
 }
 
@@ -1139,7 +1189,7 @@ static int interrupt_handler_thread(void *data)
 	alarm_sem = &driver_data->alarm_interrupt_sem;
 	if (!alarm_sem) {
 		dev_info(&client->dev,
-			"%s: failed to get i2c_get_clientdata\n",
+			"%s: failed to get alarm_sem pointer\n",
 			__func__);
 		do_exit(3);
 	}
@@ -1170,6 +1220,19 @@ static int interrupt_handler_thread(void *data)
 				dev_info(&client->dev,
 					"%s: ds3231_clear_onchip_alarm_flags: error\n",
 					__func__);
+
+			/*
+			 * Clear sysfs alarm-enabled flag.
+			 * If we don't clear the one, we can't
+			 * set alarm again.
+			 *
+			 * ToDo: fix a potential bug
+			 * This is a potential critical section,
+			 * because the value can change from user space
+			 * with help sysfs attribute and here.
+			 */
+			driver_data->alarm_int_enabled = 0;
+			driver_data->alarm_int_enabled_old = 0;
 		}
 	}
 
@@ -1219,7 +1282,7 @@ static int ds3231_probe(struct i2c_client *client,
 	 */
 	sema_init(&driver_data->alarm_interrupt_sem, 0);
 
-	if (setup_cpu_gpio_pin_for_interrupt() != 0) {
+	if (setup_cpu_gpio_pin_for_interrupt(client) != 0) {
 		dev_info(&client->dev,
 			"%s: setup_cpu_gpio_pin_for_interrupt() error\n",
 			__func__);
@@ -1245,7 +1308,7 @@ static int ds3231_probe(struct i2c_client *client,
 	}
 
 	/*
-	 * Create kernel thread z interrupts
+	 * Create kernel thread to handle GPIO alarm interrupt
 	 * See https://lwn.net/Articles/65178/
 	 *
 	 * In IT handler you need reset RTC IT ALARM A1F flag in status register.
@@ -1285,6 +1348,8 @@ static int ds3231_remove(struct i2c_client *client)
 			"%s: failed to get i2c_get_clientdata\n", __func__);
 		return -EIO;
 	}
+
+	free_irq(driver_data->irq, &client->dev);
 
 	ds3231_disable_onchip_alarm_detect(client);
 	ds3231_clear_onchip_alarm_flags(client);
