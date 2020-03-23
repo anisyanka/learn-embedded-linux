@@ -921,6 +921,12 @@ config RTC_DRV_DS3231_SQUARE_8192_HZ
 
 endchoice
 
+config RTC_DRV_DS3231_USE_TEST_TASKLET
+	bool "Use LED tasklet"
+	depends on RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	help
+		Say [y] if you want to use led blink after the ds3231 gpio pin interrupt.
+
 config RTC_DRV_DS3232
 	tristate "Dallas/Maxim DS3232/DS3234"
 	depends on RTC_I2C_AND_SPI

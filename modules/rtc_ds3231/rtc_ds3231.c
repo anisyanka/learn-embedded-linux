@@ -226,6 +226,13 @@ struct ds3231_state {
 	unsigned a1m2:1;
 	unsigned a1m3:1;
 	unsigned a1m4:1;
+
+#ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
+#define LED_GPIO 49
+#define LED_GPIO_LABEL "ds3231 LED"
+	struct tasklet_struct tasklet;
+#endif
+
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 	/* '1' means that alarm was enabled from user space */
 	int alarm_int_enabled;
@@ -1182,6 +1189,30 @@ static int ds3231_init(struct i2c_client *client)
 	return 0;
 }
 
+#ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
+static void setup_cpu_gpio_led_pin_output(void)
+{
+	int ret;
+
+	ret = gpio_request(LED_GPIO, LED_GPIO_LABEL);
+	if (ret != 0)
+		pr_err("%s: gpio_request error\n", __func__);
+
+	ret = gpio_direction_output(LED_GPIO, 0);
+	if (ret != 0)
+		pr_err("%s: gpio_direction_output error\n", __func__);
+}
+
+static void bottom_half_ds3231_interrupt(unsigned long data)
+{
+	static int led_out = 0;
+
+	led_out = (led_out) ? (0) : (1);
+	gpio_set_value(LED_GPIO, led_out);
+	pr_info("%s: led set to %d\n", __func__, led_out);
+}
+#endif
+
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 static irqreturn_t alarm_irq_handler(int irq, void *dev)
@@ -1191,6 +1222,10 @@ static irqreturn_t alarm_irq_handler(int irq, void *dev)
 	driver_data = i2c_get_clientdata(to_i2c_client(dev));
 	if (!driver_data)
 		return IRQ_NONE;
+
+#ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
+	tasklet_schedule(&driver_data->tasklet);
+#endif
 
 	up(&driver_data->alarm_interrupt_sem);
 
@@ -1343,6 +1378,11 @@ static int ds3231_probe(struct i2c_client *client,
 		return PTR_ERR(driver_data->rtc);
 	}
 
+#ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
+	setup_cpu_gpio_led_pin_output();
+	tasklet_init(&driver_data->tasklet, bottom_half_ds3231_interrupt, 0);
+#endif
+
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 	/*
 	 * Thread waits, when interrupt happens and into
@@ -1422,7 +1462,6 @@ static int ds3231_probe(struct i2c_client *client,
 
 static int ds3231_remove(struct i2c_client *client)
 {
-#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 	struct ds3231_state *driver_data;
 
 	driver_data = i2c_get_clientdata(client);
@@ -1431,6 +1470,14 @@ static int ds3231_remove(struct i2c_client *client)
 			"%s: failed to get i2c_get_clientdata\n", __func__);
 		return -EIO;
 	}
+
+#ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
+	tasklet_kill(&driver_data->tasklet);
+	gpio_set_value(LED_GPIO, 0);
+	gpio_free(LED_GPIO);
+#endif
+
+#ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 	free_irq(driver_data->irq, &client->dev);
 
