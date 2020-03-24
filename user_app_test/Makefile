@@ -14,9 +14,20 @@ USER_APPS_LDFLAGS=-lc -lm
 LED_C=led_test.c
 LED_O=led_test
 
+CHRDEV_WRITER_C=chrdev_writer.c
+CHRDEV_WRITER_O=chrdev_writer
+
+CHRDEV_READER_C=chrdev_reader.c
+CHRDEV_READER_O=chrdev_reader
+
 all:
 	$(CC) $(USER_APPS_CCPFLAGS) $(LED_C) -o $(LED_O)
+	$(CC) $(USER_APPS_CCPFLAGS) $(CHRDEV_WRITER_C) -o $(CHRDEV_WRITER_O)
+	$(CC) $(USER_APPS_CCPFLAGS) $(CHRDEV_READER_C) -o $(CHRDEV_READER_O)
+
 	sudo cp $(LED_O) --target-directory=$(NFS)/root/user_space_drv_test
+	sudo cp $(CHRDEV_WRITER_O) --target-directory=$(NFS)/root/user_space_drv_test
+	sudo cp $(CHRDEV_READER_O) --target-directory=$(NFS)/root/user_space_drv_test
 
 clean:
-	rm -rf *.o $(LED_O)
+	rm -rf *.o $(LED_O) $(CHRDEV_WRITER_O) $(CHRDEV_READER_O
