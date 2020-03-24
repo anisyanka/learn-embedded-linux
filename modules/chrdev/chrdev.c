@@ -2,11 +2,12 @@
 #include <linux/types.h>
 #include <linux/fs.h>
 #include <linux/slab.h>
-#include <linux/device.h> 
+#include <linux/device.h>
 #include <linux/errno.h>
 #include <linux/init.h>
 #include <linux/uaccess.h>
 #include <linux/cdev.h>
+#include <linux/semaphore.h>
 
 #define MYDEV_NAME "mychrdev"
 #define MYCLASS_NAME "mychrdev_class"
@@ -21,14 +22,85 @@ struct chrdev {
 	struct device *my_dev;
 };
 
+struct chrdev_kbuf {
+	char *kbuf;
+	int cur_len;
+	int max;
+	int is_open;
+
+	/*
+	 * Need to sync r/w operation:
+	 * If user's app wants to read n bytes, but kbuf has less, then n,
+	 * we must sleep and wait write operation untill kbuf will have >= n bytes
+	 */
+	struct semaphore *sem;
+};
+
 static int mychrdev_open(struct inode *inode, struct file *file)
 {
+	struct chrdev_kbuf *kbuf_str;
+
+	/* check that file has been already opened */
+	kbuf_str = file->private_data;
+	if (kbuf_str) {
+		if (kbuf_str->is_open) {
+			printk(KERN_ERR
+				"%s: file has been already opened\n",
+				__func__);
+			return 0;
+		}
+	}
+
+	kbuf_str = kmalloc(sizeof(struct chrdev_kbuf), GFP_KERNEL);
+	if (!kbuf_str) {
+		printk(KERN_ERR "%s: kmalloc for kbuf_str error\n", __func__);
+		goto open_err;
+	}
+
+	kbuf_str->kbuf = kmalloc(KBUF_SIZE, GFP_KERNEL);
+	if (!kbuf_str->kbuf) {
+		printk(KERN_ERR "%s: kmalloc for kbuf error\n", __func__);
+		goto open_err;
+	}
+
+	kbuf_str->cur_len = 0;
+	kbuf_str->max = KBUF_SIZE;
+	kbuf_str->is_open = 1;
+
+	/*
+	 * Save buffer pointer for each application
+	 * which has opened the chrdev file
+	 */
+	file->private_data = kbuf_str;
+
 	printk(KERN_INFO "%s\n", __func__);
 	return 0;
+
+open_err:
+	if (kbuf_str->kbuf)
+		kfree(kbuf_str->kbuf);
+	if (kbuf_str)
+		kfree(kbuf_str);
+
+	return -1;
 }
 
 static int mychrdev_release(struct inode *inode, struct file *file)
 {
+	struct chrdev_kbuf *kbuf_str = file->private_data;
+
+	if ((kbuf_str) && (kbuf_str->kbuf)) {
+		kfree(kbuf_str->kbuf);
+		kbuf_str->kbuf = NULL;
+	}
+
+	if (kbuf_str) {
+		kbuf_str->is_open = 0;
+		kfree(kbuf_str);
+	}
+
+	kbuf_str = NULL;
+
 	printk(KERN_INFO "%s\n", __func__);
 	return 0;
 }
