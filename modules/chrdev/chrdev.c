@@ -8,6 +8,7 @@
 #include <linux/uaccess.h>
 #include <linux/cdev.h>
 #include <linux/semaphore.h>
+#include <linux/spinlock.h>
 
 #define USE_THIS_DRV_FOR_PROC_COMMUNICATION 1
 // #define USE_THIS_DRV_FOR_THREAD_COMMUNICATION 1
@@ -17,7 +18,7 @@
 #define MYDEV_MAX_COUNT 1
 #define KBUF_SIZE ((10) * PAGE_SIZE)
 
-#define MY_MAJOR 511
+#define MY_MAJOR 511 /* not used; we get major number dynamically */
 #define MY_MINOR 0
 
 struct chrdev {
@@ -31,6 +32,7 @@ struct chrdev_kbuf {
 	int max;
 	int is_open;
 	int open_cnt;
+	int cnt_bytes_wait_in_kbuf_to_read;
 
 	/*
 	 * Need to sync r/w operation:
@@ -38,6 +40,12 @@ struct chrdev_kbuf {
 	 * we must sleep and wait write operation untill kbuf will have >= n bytes
 	 */
 	struct semaphore sem;
+
+	/* Need to lock changing `cur_len` into read and write operations */
+	struct spinlock *rw_lock;
+
+	/* Need to lock changing `open_cnt` into open and release operations */
+	struct spinlock *open_close_lock;
 };
 
 #ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
@@ -52,7 +60,9 @@ static int mychrdev_open(struct inode *inode, struct file *file)
 		return -1;
 	}
 
+	spin_lock(kbuf_str->open_close_lock);
 	++kbuf_str->open_cnt;
+	spin_unlock(kbuf_str->open_close_lock);
 #endif
 
 #ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
@@ -108,7 +118,9 @@ open_err:
 static int mychrdev_release(struct inode *inode, struct file *file)
 {
 #ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	spin_lock(kbuf_str->open_close_lock);
 	--kbuf_str->open_cnt;
+	spin_unlock(kbuf_str->open_close_lock);
 #endif
 
 #ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
@@ -133,15 +145,78 @@ static int mychrdev_release(struct inode *inode, struct file *file)
 static ssize_t mychrdev_read(struct file *file, char __user *buf,
 	size_t lbuf, loff_t *ppos)
 {
-	printk(KERN_INFO "%s\n", __func__);
-	return 0;
+	int num_read_bytes;
+
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	/* wait while new data are appeared into kbuf */
+	while (kbuf_str->cur_len < lbuf) {
+		spin_lock(kbuf_str->rw_lock);
+		kbuf_str->cnt_bytes_wait_in_kbuf_to_read = lbuf;
+		spin_unlock(kbuf_str->rw_lock);
+
+		printk(KERN_INFO "%s: have no enough data in kbuf\n", __func__);
+		printk(KERN_INFO
+			"%s: cur_len = %d, lbuf = %d\n",
+			__func__, kbuf_str->cur_len, lbuf);
+
+		if (down_interruptible(&kbuf_str->sem) < 0) {
+			printk(KERN_INFO "%s: interrupted by user\n", __func__);
+			return lbuf;
+		}
+	}
+
+	/* mutual exclution (without falling asleep) on modification of 'cur_len' */
+	spin_lock(kbuf_str->rw_lock);
+	num_read_bytes = lbuf - copy_to_user(buf, kbuf_str->kbuf + *ppos, lbuf);
+	kbuf_str->cur_len -= num_read_bytes;
+	*ppos += num_read_bytes;
+	spin_unlock(kbuf_str->rw_lock);
+#else
+	/**/
+#endif
+	printk(KERN_INFO "%s: read %d bytes; cur_len of kbuf = %d\n",
+		__func__,
+		num_read_bytes,
+		kbuf_str->cur_len);
+
+	return num_read_bytes;
 }
 
 static ssize_t mychrdev_write(struct file *file, const char __user *buf,
 	size_t lbuf, loff_t *ppos)
 {
-	printk(KERN_INFO "%s\n", __func__);
-	return 0;
+	int num_write_bytes;
+
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	while (kbuf_str->cur_len + lbuf >= kbuf_str->max) {
+		printk(KERN_INFO "%s: kernel buffer is full\n", __func__);
+
+		/*
+		 * ToDo: add sleep on semaphore for waiting reading data
+		 */
+		return -1;
+	}
+
+	/* mutual exclution (without falling asleep) on modification of 'cur_len' */
+	spin_lock(kbuf_str->rw_lock);
+	num_write_bytes = lbuf -
+		copy_from_user(kbuf_str->kbuf + kbuf_str->cur_len, buf, lbuf);
+
+	kbuf_str->cur_len += num_write_bytes;
+	*ppos += num_write_bytes;
+
+	if (kbuf_str->cur_len >= kbuf_str->cnt_bytes_wait_in_kbuf_to_read)
+		up(&kbuf_str->sem);
+	spin_unlock(kbuf_str->rw_lock);
+#else
+	/**/
+#endif
+	printk(KERN_INFO "%s: write %d bytes; cur_len of kbuf = %d\n",
+		__func__,
+		num_write_bytes,
+		kbuf_str->cur_len);
+
+	return num_write_bytes;
 }
 
 static struct chrdev mychrdev[MYDEV_MAX_COUNT];
@@ -162,6 +237,11 @@ static struct file_operations mychrdev_fops = {
  */
 static int __init init_chrdev(void)
 {
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	/* ISO C90 forbids mixed declarations and code --> declare here */
+	static DEFINE_SPINLOCK(rw_lock);
+	static DEFINE_SPINLOCK(open_close_lock);
+#endif
 	int ret = -1, res, i;
 	dev_t curr_dev;
 
@@ -227,6 +307,8 @@ static int __init init_chrdev(void)
 		goto init_error;
 	}
 
+	memset(kbuf_str, 0, sizeof(struct chrdev_kbuf));
+
 	kbuf_str->kbuf = kmalloc(KBUF_SIZE, GFP_KERNEL);
 
 	if (!kbuf_str->kbuf) {
@@ -236,10 +318,13 @@ static int __init init_chrdev(void)
 		goto init_error;
 	}
 
-	kbuf_str->cur_len = 0;
 	kbuf_str->max = KBUF_SIZE;
 
 	sema_init(&kbuf_str->sem, 0);
+
+	/* assign spinlock to common struct */
+	kbuf_str->rw_lock = &rw_lock;
+	kbuf_str->open_close_lock = &open_close_lock;
 #endif
 	ret = 0;
 	goto init_ok;
