@@ -9,6 +9,9 @@
 #include <linux/cdev.h>
 #include <linux/semaphore.h>
 
+#define USE_THIS_DRV_FOR_PROC_COMMUNICATION 1
+// #define USE_THIS_DRV_FOR_THREAD_COMMUNICATION 1
+
 #define MYDEV_NAME "mychrdev"
 #define MYCLASS_NAME "mychrdev_class"
 #define MYDEV_MAX_COUNT 1
@@ -27,17 +30,32 @@ struct chrdev_kbuf {
 	int cur_len;
 	int max;
 	int is_open;
+	int open_cnt;
 
 	/*
 	 * Need to sync r/w operation:
 	 * If user's app wants to read n bytes, but kbuf has less, then n,
 	 * we must sleep and wait write operation untill kbuf will have >= n bytes
 	 */
-	struct semaphore *sem;
+	struct semaphore sem;
 };
+
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+static struct chrdev_kbuf *kbuf_str;
+#endif
 
 static int mychrdev_open(struct inode *inode, struct file *file)
 {
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	if (kbuf_str->open_cnt == 2) {
+		printk(KERN_NOTICE "%s: driver is busy\n", __func__);
+		return -1;
+	}
+
+	++kbuf_str->open_cnt;
+#endif
+
+#ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
 	struct chrdev_kbuf *kbuf_str;
 
 	/* check that file has been already opened */
@@ -72,10 +90,11 @@ static int mychrdev_open(struct inode *inode, struct file *file)
 	 * which has opened the chrdev file
 	 */
 	file->private_data = kbuf_str;
-
+#endif
 	printk(KERN_INFO "%s\n", __func__);
 	return 0;
 
+#ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
 open_err:
 	if (kbuf_str->kbuf)
 		kfree(kbuf_str->kbuf);
@@ -83,10 +102,16 @@ open_err:
 		kfree(kbuf_str);
 
 	return -1;
+#endif
 }
 
 static int mychrdev_release(struct inode *inode, struct file *file)
 {
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	--kbuf_str->open_cnt;
+#endif
+
+#ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
 	struct chrdev_kbuf *kbuf_str = file->private_data;
 
 	if ((kbuf_str) && (kbuf_str->kbuf)) {
@@ -100,7 +125,7 @@ static int mychrdev_release(struct inode *inode, struct file *file)
 	}
 
 	kbuf_str = NULL;
-
+#endif
 	printk(KERN_INFO "%s\n", __func__);
 	return 0;
 }
@@ -193,6 +218,29 @@ static int __init init_chrdev(void)
 
 	printk(KERN_INFO "Hello, chrdev!\n");
 
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	kbuf_str = kmalloc(sizeof(struct chrdev_kbuf), GFP_KERNEL);
+	if (!kbuf_str) {
+		printk(KERN_ERR
+			"%s: kmalloc() for chrdev_kbuf error\n",
+			__func__);
+		goto init_error;
+	}
+
+	kbuf_str->kbuf = kmalloc(KBUF_SIZE, GFP_KERNEL);
+
+	if (!kbuf_str->kbuf) {
+		printk(KERN_ERR
+			"%s: kmalloc() for kbuf error\n",
+			__func__);
+		goto init_error;
+	}
+
+	kbuf_str->cur_len = 0;
+	kbuf_str->max = KBUF_SIZE;
+
+	sema_init(&kbuf_str->sem, 0);
+#endif
 	ret = 0;
 	goto init_ok;
 
@@ -211,6 +259,14 @@ init_error:
 		if (mychrdev[i].my_cdev)
 			cdev_del(mychrdev[i].my_cdev);
 	}
+
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	if ((kbuf_str) && (kbuf_str->kbuf))
+		kfree(kbuf_str->kbuf);
+
+	if (kbuf_str)
+		kfree(kbuf_str);
+#endif
 
 init_ok:
 	return ret;
@@ -242,6 +298,14 @@ static void __exit exit_chrdev(void)
 	}
 
 	unregister_chrdev_region(dev_no, MYDEV_MAX_COUNT);
+
+#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+	if ((kbuf_str) && (kbuf_str->kbuf))
+		kfree(kbuf_str->kbuf);
+
+	if (kbuf_str)
+		kfree(kbuf_str);
+#endif
 
 	printk(KERN_INFO "Goodbuy, chrdev!\n");
 }
