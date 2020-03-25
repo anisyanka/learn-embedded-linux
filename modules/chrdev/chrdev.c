@@ -85,15 +85,22 @@ static int mychrdev_open(struct inode *inode, struct file *file)
 		goto open_err;
 	}
 
+	memset(kbuf_str, 0, sizeof(struct chrdev_kbuf));
+
 	kbuf_str->kbuf = kmalloc(KBUF_SIZE, GFP_KERNEL);
 	if (!kbuf_str->kbuf) {
 		printk(KERN_ERR "%s: kmalloc for kbuf error\n", __func__);
 		goto open_err;
 	}
 
-	kbuf_str->cur_len = 0;
 	kbuf_str->max = KBUF_SIZE;
 	kbuf_str->is_open = 1;
+
+	sema_init(&kbuf_str->sem, 0);
+
+	/* allocate memory for spinlocks: each process uses own spinlock */
+	kbuf_str->rw_lock = kmalloc(sizeof(struct spinlock), GFP_KERNEL);
+	memset(kbuf_str->rw_lock, 0, sizeof(struct spinlock));
 
 	/*
 	 * Save buffer pointer for each application
@@ -147,7 +154,10 @@ static ssize_t mychrdev_read(struct file *file, char __user *buf,
 {
 	int num_read_bytes;
 
-#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+#ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
+	/* use local kbuf struct for thread case*/
+	struct chrdev_kbuf *kbuf_str = file->private_data;
+#endif
 	/* wait while new data are appeared into kbuf */
 	while (kbuf_str->cur_len < lbuf) {
 		spin_lock(kbuf_str->rw_lock);
@@ -171,9 +181,7 @@ static ssize_t mychrdev_read(struct file *file, char __user *buf,
 	kbuf_str->cur_len -= num_read_bytes;
 	*ppos += num_read_bytes;
 	spin_unlock(kbuf_str->rw_lock);
-#else
-	/**/
-#endif
+
 	printk(KERN_INFO "%s: read %d bytes; cur_len of kbuf = %d\n",
 		__func__,
 		num_read_bytes,
@@ -187,7 +195,12 @@ static ssize_t mychrdev_write(struct file *file, const char __user *buf,
 {
 	int num_write_bytes;
 
-#ifdef USE_THIS_DRV_FOR_PROC_COMMUNICATION
+#ifdef USE_THIS_DRV_FOR_THREAD_COMMUNICATION
+	/* use local kbuf struct for thread case*/
+	struct chrdev_kbuf *kbuf_str = file->private_data;
+	if (!kbuf_str || !kbuf_str->kbuf)
+		printk(KERN_ERR "%s: kbuf_str || kbuf_str->kbuf NULL\n", __func__);
+#endif
 	while (kbuf_str->cur_len + lbuf >= kbuf_str->max) {
 		printk(KERN_INFO "%s: kernel buffer is full\n", __func__);
 
@@ -208,9 +221,7 @@ static ssize_t mychrdev_write(struct file *file, const char __user *buf,
 	if (kbuf_str->cur_len >= kbuf_str->cnt_bytes_wait_in_kbuf_to_read)
 		up(&kbuf_str->sem);
 	spin_unlock(kbuf_str->rw_lock);
-#else
-	/**/
-#endif
+
 	printk(KERN_INFO "%s: write %d bytes; cur_len of kbuf = %d\n",
 		__func__,
 		num_write_bytes,
