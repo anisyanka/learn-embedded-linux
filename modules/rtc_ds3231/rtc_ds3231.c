@@ -252,6 +252,10 @@ struct ds3231_state {
 	int task_exit:1;
 # endif
 
+# ifdef CONFIG_RTC_DRV_DS3231_USE_WORKQUEUE
+	struct work_struct *wq;
+# endif
+
 	/*
 	 * P9.15 in beaglebone board.
 	 * This pin fall to logic zero when alarm interrupt happens.
@@ -1234,6 +1238,10 @@ static irqreturn_t alarm_irq_handler(int irq, void *dev)
 	up(&driver_data->alarm_interrupt_sem);
 #endif
 
+#ifdef CONFIG_RTC_DRV_DS3231_USE_WORKQUEUE
+	schedule_work(driver_data->wq);
+#endif
+
 	if (driver_data->sysfs_read_op_started)
 		up(&driver_data->is_alarm_sysfs_sem);
 
@@ -1270,6 +1278,61 @@ static int setup_cpu_gpio_pin_for_interrupt(struct i2c_client *client)
 
 	return 0;
 }
+
+# ifdef CONFIG_RTC_DRV_DS3231_USE_WORKQUEUE
+void bottom_half_ds3231_interrupt_workqueue(struct work_struct *work)
+{
+	struct ds3231_state *driver_data = &ds3231_data;
+	struct i2c_client *client = to_i2c_client(&driver_data->rtc->dev);
+	int ret;
+
+	client = (struct i2c_client *)data;
+	if (!client) {
+		dev_info(&client->dev,
+			"%s: failed to i2c client pointer\n",
+			__func__);
+		return;
+	}
+
+	driver_data = i2c_get_clientdata(client);
+	if (!driver_data) {
+		dev_info(&client->dev,
+			"%s: failed to get i2c_get_clientdata\n",
+			__func__);
+		return;
+	}
+
+	/* proccess ds3231 gpio interrupt */
+	dev_info(&client->dev, "ds3231 gpio alarm interrupt detect\n");
+
+	ret = ds3231_disable_onchip_alarm_detect(client);
+	if (ret != 0)
+		dev_info(&client->dev,
+			"%s: ds3231_disable_onchip_alarm_detect: error\n",
+			__func__);
+
+	ret = ds3231_clear_onchip_alarm_flags(client);
+	if (ret != 0)
+		dev_info(&client->dev,
+			"%s: ds3231_clear_onchip_alarm_flags: error\n",
+			__func__);
+
+	/*
+	 * Clear sysfs alarm-enabled flag.
+	 * If we don't clear the one, we can't
+	 * set alarm again.
+	 *
+	 * ToDo: fix a potential bug
+	 * This is a potential critical section,
+	 * because the value can change from user space
+	 * with help sysfs attribute and here.
+	 */
+	driver_data->alarm_int_enabled = 0;
+	driver_data->alarm_int_enabled_old = 0;
+}
+
+static DECLARE_WORK(ds3231_wq, bottom_half_ds3231_interrupt_workqueue);
+# endif
 
 # ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 static int interrupt_handler_thread(void *data)
@@ -1462,7 +1525,12 @@ static int ds3231_probe(struct i2c_client *client,
 
 	wake_up_process(driver_data->thread);
 # endif
-#endif
+
+# ifdef CONFIG_RTC_DRV_DS3231_USE_WORKQUEUE
+	driver_data->wq = &ds3231_wq;
+# endif
+
+#endif  // CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 	/*
 	 * ToDo: create debug interface to this driver to ability to read chip register
@@ -1516,6 +1584,11 @@ static int ds3231_remove(struct i2c_client *client)
 	 */
 	kthread_stop(driver_data->thread);
 # endif
+
+# ifdef CONFIG_RTC_DRV_DS3231_USE_WORKQUEUE
+	cancel_work_sync(driver_data->wq);
+# endif
+
 #endif
 	return 0;
 }
