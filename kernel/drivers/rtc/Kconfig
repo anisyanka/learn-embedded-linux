@@ -927,6 +927,19 @@ config RTC_DRV_DS3231_USE_TEST_TASKLET
 	help
 		Say [y] if you want to use led blink after the ds3231 gpio pin interrupt.
 
+choice
+	prompt "Handler for ds3231 bottom half interrupt"
+	depends on RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+	help
+	  Output frequency for SWQ pin if wave ouput was enabled
+
+config RTC_DRV_DS3231_USE_OWN_KTHREAD
+	bool "ds3231 own kthread"
+config RTC_DRV_DS3231_USE_WORKQUEUE
+	bool "ds3231 workqueue"
+
+endchoice
+
 config RTC_DRV_DS3232
 	tristate "Dallas/Maxim DS3232/DS3234"
 	depends on RTC_I2C_AND_SPI

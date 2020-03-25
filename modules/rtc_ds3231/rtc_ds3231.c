@@ -21,6 +21,7 @@
 #include <linux/semaphore.h>
 #include <linux/stat.h>
 #include <linux/interrupt.h>
+#include <linux/workqueue.h>
 
 /*
  * After loading this module to kernel (or statically linked with kernel) in the
@@ -244,10 +245,12 @@ struct ds3231_state {
 	struct semaphore is_alarm_sysfs_sem;
 	int sysfs_read_op_started:1;
 
+# ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 	/* It used in interrupt handler and created kernel thread.*/
 	struct semaphore alarm_interrupt_sem;
 	struct task_struct *thread;
 	int task_exit:1;
+# endif
 
 	/*
 	 * P9.15 in beaglebone board.
@@ -256,8 +259,8 @@ struct ds3231_state {
 	 * ToDo: remove hardcoded GPIO pin. Do it with devicetree.
 	 * https://stackoverflow.com/questions/39212771/linux-4-5-gpio-interrupt-through-devicetree-on-xilinx-zynq-platform?rq=1
 	 */
-	#define ALARM_INT_GPIO 48
-	#define ALARM_INT_GPIO_LABEL "ds3231 GPIO"
+#define ALARM_INT_GPIO 48
+#define ALARM_INT_GPIO_LABEL "ds3231 GPIO"
 	int irq;
 #endif
 };
@@ -1203,7 +1206,7 @@ static void setup_cpu_gpio_led_pin_output(void)
 		pr_err("%s: gpio_direction_output error\n", __func__);
 }
 
-static void bottom_half_ds3231_interrupt(unsigned long data)
+static void bottom_half_ds3231_interrupt_tasklet(unsigned long data)
 {
 	static int led_out = 0;
 
@@ -1227,7 +1230,9 @@ static irqreturn_t alarm_irq_handler(int irq, void *dev)
 	tasklet_schedule(&driver_data->tasklet);
 #endif
 
+#ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 	up(&driver_data->alarm_interrupt_sem);
+#endif
 
 	if (driver_data->sysfs_read_op_started)
 		up(&driver_data->is_alarm_sysfs_sem);
@@ -1266,6 +1271,7 @@ static int setup_cpu_gpio_pin_for_interrupt(struct i2c_client *client)
 	return 0;
 }
 
+# ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 static int interrupt_handler_thread(void *data)
 {
 	struct ds3231_state *driver_data;
@@ -1341,7 +1347,8 @@ static int interrupt_handler_thread(void *data)
 
 	return 0;
 }
-#endif
+# endif  // CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
+#endif  // CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
 
 static int ds3231_probe(struct i2c_client *client,
 		const struct i2c_device_id *id)
@@ -1380,15 +1387,18 @@ static int ds3231_probe(struct i2c_client *client,
 
 #ifdef CONFIG_RTC_DRV_DS3231_USE_TEST_TASKLET
 	setup_cpu_gpio_led_pin_output();
-	tasklet_init(&driver_data->tasklet, bottom_half_ds3231_interrupt, 0);
+	tasklet_init(&driver_data->tasklet, bottom_half_ds3231_interrupt_tasklet, 0);
 #endif
 
 #ifdef CONFIG_RTC_DRV_DS3231_ALARM_INTERRUPTS_EN
+
+# ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 	/*
 	 * Thread waits, when interrupt happens and into
 	 * handler we will increment semaphore and thread will wake up.
 	 */
 	sema_init(&driver_data->alarm_interrupt_sem, 0);
+# endif
 
 	/*
 	 * Driver exports sysfs attributer to detect
@@ -1430,6 +1440,7 @@ static int ds3231_probe(struct i2c_client *client,
 		return -ENODEV;
 	}
 
+# ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 	/*
 	 * Create kernel thread to handle GPIO alarm interrupt
 	 * See https://lwn.net/Articles/65178/
@@ -1450,6 +1461,7 @@ static int ds3231_probe(struct i2c_client *client,
 	}
 
 	wake_up_process(driver_data->thread);
+# endif
 #endif
 
 	/*
@@ -1488,6 +1500,7 @@ static int ds3231_remove(struct i2c_client *client)
 	device_remove_file(&client->dev, &dev_attr_alarm_int_enabled);
 	device_remove_file(&client->dev, &dev_attr_is_alarm_happen);
 
+# ifdef CONFIG_RTC_DRV_DS3231_USE_OWN_KTHREAD
 	/* set exit flag to true exit from kernel thread */
 	driver_data->task_exit = 1;
 
@@ -1502,6 +1515,7 @@ static int ds3231_remove(struct i2c_client *client)
 	 * See https://lwn.net/Articles/118935/
 	 */
 	kthread_stop(driver_data->thread);
+# endif
 #endif
 	return 0;
 }
